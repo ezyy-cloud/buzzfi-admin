@@ -1,5 +1,5 @@
 // config.ts
 
-export const API_URL = 'http://127.0.0.1:8000/api';
-export const TOKEN = '1|p0g7eJVJguZXKhjiio9vWJwaAHZu0SdnjJTOpWxS47dfc92f';
+export const API_URL = 'http://buzzfiapi.af-south-1.elasticbeanstalk.com/api';
+export const TOKEN = '1|jRjo0HahuhKLEIu36lJDJFEHMc94YGn2zpLybHLx46c02eff';
 

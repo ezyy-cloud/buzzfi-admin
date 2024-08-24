@@ -73,14 +73,11 @@ export const useVouchersStore = defineStore('vouchers', {
       this.loading = true;
       this.error = null;
       try {
-        await axios.get('/sanctum/csrf-cookie').then(response =>
-          
-          axios.delete(`${API_URL}/vouchers/${id}`, {
+        await axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
-            'Accept': 'application/json',
           },
-        }));
+        });
         this.vouchers = this.vouchers.filter((voucher: { id: number; }) => voucher.id !== id);
       } catch (err: any) {
         this.error = err.response?.data?.message || err.message || 'Failed to delete voucher';

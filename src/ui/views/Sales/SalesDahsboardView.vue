@@ -4,6 +4,7 @@ import VoucherSales from "@/ui/components/Charts/VoucherSales.vue";
 import ClientAnalytics from "@/ui/components/Charts/ClientAnalytics.vue";
 import VendorSales from "@/ui/components/Charts/VendorSales.vue";
 import VendorRevenue from "@/ui/components/VendorRevenue.vue";
+import SiteMetrics from "@/ui/components/Tables/SiteMetrics.vue";
 import AccessPointLocations from "@/ui/components/Maps/AccessPointLocations.vue";
 import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
 </script>

@@ -81,6 +81,7 @@ export const useVouchersStore = defineStore('vouchers', {
         await axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': csrfResponse.data, // Use the stored CSRF token
           },
           withCredentials: true,

@@ -79,6 +79,7 @@ export const useVouchersStore = defineStore('vouchers', {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
             'Accept': 'application/json',
+            'X-CSRF-TOKEN': response.data,
           },
         }));
         this.vouchers = this.vouchers.filter((voucher: { id: number; }) => voucher.id !== id);

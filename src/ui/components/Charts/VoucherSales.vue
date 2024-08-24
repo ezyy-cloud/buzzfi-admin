@@ -208,7 +208,7 @@ const apexOptions = computed(() => ({
   },
   markers: {
     size: 4,
-    colors: "#fff",
+    colors: ["#fff"],
     strokeColors: voucherStore.vouchers.map(
       (_, index) => `hsl(${(index * 360) / voucherStore.vouchers.length}, 70%, 50%)`
     ),

@@ -75,16 +75,13 @@ export const useVouchersStore = defineStore('vouchers', {
 
       try {
         // Fetch the CSRF cookie first
-        await axios.get('/sanctum/csrf-cookie');
-
-        // Perform the delete request
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        await axios.get('/token', { withCredentials: true });
 
         await axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
-            'X-CSRF-TOKEN': csrfToken,
           },
+          withCredentials: true,
         });
 
         // Update local state if deletion is successful

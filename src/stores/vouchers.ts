@@ -76,6 +76,7 @@ export const useVouchersStore = defineStore('vouchers', {
         await axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
           },
         });
         this.vouchers = this.vouchers.filter((voucher: { id: number; }) => voucher.id !== id);

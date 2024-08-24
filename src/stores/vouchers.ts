@@ -72,33 +72,24 @@ export const useVouchersStore = defineStore('vouchers', {
     async deleteVoucher(id: number) {
       this.loading = true;
       this.error = null;
-
       try {
-        // Fetch the CSRF cookie first
-        const csrfResponse = await axios.get('/token', { withCredentials: true }); // Store the response
-
-        // Use the stored response to delete the voucher
-        await axios.delete(`${API_URL}/vouchers/${id}`, {
+        await axios.get('/sanctum/csrf-cookie').then(response =>
+          
+          axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {
             'Authorization': `Bearer ${TOKEN}`,
             'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfResponse.data, // Use the stored CSRF token
           },
-          withCredentials: true,
-        });
-
-        // Update local state if deletion is successful
+        }));
         this.vouchers = this.vouchers.filter((voucher: { id: number; }) => voucher.id !== id);
       } catch (err: any) {
-        // Handle errors
         this.error = err.response?.data?.message || err.message || 'Failed to delete voucher';
       } finally {
         this.loading = false;
       }
     },
-
     clearError() {
       this.error = null;
     },
-  }
+  },
 });

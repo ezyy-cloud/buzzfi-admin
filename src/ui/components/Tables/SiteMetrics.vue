@@ -1,54 +1,54 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
-import BrandOne from '@/assets/images/brand/brand-01.svg'
-import BrandTwo from '@/assets/images/brand/brand-02.svg'
-import BrandThree from '@/assets/images/brand/brand-03.svg'
-import BrandFour from '@/assets/images/brand/brand-04.svg'
-import BrandFive from '@/assets/images/brand/brand-05.svg'
+import BrandOne from "@/ui/assets/images/brand/brand-01.svg";
+import BrandTwo from "@/ui/assets/images/brand/brand-02.svg";
+import BrandThree from "@/ui/assets/images/brand/brand-03.svg";
+import BrandFour from "@/ui/assets/images/brand/brand-04.svg";
+import BrandFive from "@/ui/assets/images/brand/brand-05.svg";
 
 const brandData = ref([
   {
     logo: BrandOne,
-    name: 'Google',
+    name: "Google",
     visitors: 3.5,
-    revenues: '5,768',
+    revenues: "5,768",
     sales: 590,
-    conversion: 4.8
+    conversion: 4.8,
   },
   {
     logo: BrandTwo,
-    name: 'Twitter',
+    name: "Twitter",
     visitors: 2.2,
-    revenues: '4,635',
+    revenues: "4,635",
     sales: 467,
-    conversion: 4.3
+    conversion: 4.3,
   },
   {
     logo: BrandThree,
-    name: 'Github',
+    name: "Github",
     visitors: 2.1,
-    revenues: '4,290',
+    revenues: "4,290",
     sales: 420,
-    conversion: 3.7
+    conversion: 3.7,
   },
   {
     logo: BrandFour,
-    name: 'Vimeo',
+    name: "Vimeo",
     visitors: 1.5,
-    revenues: '3,580',
+    revenues: "3,580",
     sales: 389,
-    conversion: 2.5
+    conversion: 2.5,
   },
   {
     logo: BrandFive,
-    name: 'Facebook',
+    name: "Facebook",
     visitors: 3.5,
-    revenues: '6,768',
+    revenues: "6,768",
     sales: 390,
-    conversion: 4.2
-  }
-])
+    conversion: 4.2,
+  },
+]);
 </script>
 
 <template>
@@ -80,7 +80,9 @@ const brandData = ref([
         v-for="(brand, key) in brandData"
         :key="key"
         :class="`grid grid-cols-3 sm:grid-cols-5 ${
-          key === brandData.length - 1 ? '' : 'border-b border-stroke dark:border-strokedark'
+          key === brandData.length - 1
+            ? ''
+            : 'border-b border-stroke dark:border-strokedark'
         }`"
       >
         <div class="flex items-center gap-3 p-2.5 xl:p-5">

@@ -75,17 +75,16 @@ export const useVouchersStore = defineStore('vouchers', {
 
       try {
         // Fetch the CSRF cookie first
-        await axios.get('/token', { withCredentials: true }).then(response =>
+        const csrfResponse = await axios.get('/token', { withCredentials: true }); // Store the response
 
-          axios.delete(`${API_URL}/vouchers/${id}`, {
-            headers: {
-              'Authorization': `Bearer ${TOKEN}`,
-              'X-CSRF-TOKEN': response.data,
-            },
-            withCredentials: true,
-          })
-        )
-
+        // Use the stored response to delete the voucher
+        await axios.delete(`${API_URL}/vouchers/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'X-CSRF-TOKEN': csrfResponse.data, // Use the stored CSRF token
+          },
+          withCredentials: true,
+        });
 
         // Update local state if deletion is successful
         this.vouchers = this.vouchers.filter((voucher: { id: number; }) => voucher.id !== id);

@@ -73,7 +73,7 @@ export const useVouchersStore = defineStore('vouchers', {
       this.loading = true;
       this.error = null;
       try {
-        await axios.get('/sanctum/csrf-cookie').then(response =>
+        await axios.get('/token').then(response =>
           
           axios.delete(`${API_URL}/vouchers/${id}`, {
           headers: {

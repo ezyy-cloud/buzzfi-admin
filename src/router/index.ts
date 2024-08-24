@@ -1,27 +1,65 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import SigninView from '@/views/Authentication/SigninView.vue'
-import SignupView from '@/views/Authentication/SignupView.vue'
-import CalendarView from '@/views/CalendarView.vue'
-import BasicChartView from '@/views/Charts/BasicChartView.vue'
-import ECommerceView from '@/views/Dashboard/ECommerceView.vue'
-import FormElementsView from '@/views/Forms/FormElementsView.vue'
-import FormLayoutView from '@/views/Forms/FormLayoutView.vue'
-import SettingsView from '@/views/Pages/SettingsView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import SalesView from '@/views/SalesView.vue'
-import VouchersView from '@/views/VouchersView.vue'
-import AlertsView from '@/views/UiElements/AlertsView.vue'
-import ButtonsView from '@/views/UiElements/ButtonsView.vue'
-import AgentsView from '@/views/AgentsView.vue'
+// Template Views
+import FormElementsView from '@/ui/views/Templates/Forms/FormElementsView.vue'
+import FormLayoutView from '@/ui/views/Templates/Forms/FormLayoutView.vue'
+import AlertsView from '@/ui/views/Templates/UiElements/AlertsView.vue'
+import ButtonsView from '@/ui/views/Templates/UiElements/ButtonsView.vue'
+
+// Sales Views
+import DahsboardView from '@/ui/views/Sales/SalesDahsboardView.vue'
+import AgentsView from '@/ui/views/Sales/AgentsView.vue'
+import SalesView from '@/ui/views/Sales/SalesView.vue'
+import VouchersView from '@/ui/views/Sales/VouchersView.vue'
+import CalendarView from '@/ui/views/Sales/CalendarView.vue'
+
+// Account Views
+import SettingsView from '@/ui/views/Account/SettingsView.vue'
+import ProfileView from '@/ui/views/Account/ProfileView.vue'
+
+// Auth Views
+import SigninView from '@/ui/views/Authentication/SigninView.vue'
+import SignupView from '@/ui/views/Authentication/SignupView.vue'
+
+// Network Views
+import NetworkView from '@/ui/views/Network/NetworkDashboardView.vue'
+import AccessPointsView from '@/ui/views/Network/AccessPointsView.vue'
+import BandwidthView from '@/ui/views/Network/BandwidthView.vue'
+import SupportTicketsView from '@/ui/views/Network/SupportTicketsView.vue' 
+import TrafficShapingView from '@/ui/views/Network/TrafficShapingView.vue'
 
 const routes = [
+  // Sales routes
   {
     path: '/',
-    name: 'eCommerce',
-    component: ECommerceView,
+    name: 'Dashboard',
+    component: DahsboardView,
     meta: {
-      title: 'eCommerce Dashboard'
+      title: 'Dashboard'
+    }
+  },
+  {
+    path: '/sales',
+    name: 'sales',
+    component: SalesView,
+    meta: {
+      title: 'Voucher Sales'
+    }
+  },
+  {
+    path: '/agents',
+    name: 'agents',
+    component: AgentsView,
+    meta: {
+      title: 'Agents'
+    }
+  },
+  {
+    path: '/vouchers',
+    name: 'vouchers',
+    component: VouchersView,
+    meta: {
+      title: 'Vouchers'
     }
   },
   {
@@ -32,6 +70,50 @@ const routes = [
       title: 'Calendar'
     }
   },
+
+  // Network routes
+  {
+    path: '/network',
+    name: 'network',
+    component: NetworkView,
+    meta: {
+      title: 'Network'
+    }
+  },
+  {
+    path: '/accessPoints',
+    name: 'accessPoints',
+    component: AccessPointsView,
+    meta: {
+      title: 'Access Points'
+    }
+  },
+  {
+    path: '/bandwidth',
+    name: 'bandwidth',
+    component: BandwidthView,
+    meta: {
+      title: 'Bandwidth'
+    }
+  },
+  {
+    path: '/support',
+    name: 'support',
+    component: SupportTicketsView,
+    meta: {
+      title: 'Support Tickets'
+    }
+  },
+  {
+    path: '/trafficShaping',
+    name: 'trafficShaping',
+    component: TrafficShapingView,
+    meta: {
+      title: 'Traffic Shaping'
+    }
+  },
+
+  // Account routes
   {
     path: '/profile',
     name: 'profile',
@@ -40,6 +122,34 @@ const routes = [
       title: 'Profile'
     }
   },
+  {
+    path: '/pages/settings',
+    name: 'settings',
+    component: SettingsView,
+    meta: {
+      title: 'Settings'
+    }
+  },
+
+  // Auth routes
+  {
+    path: '/auth/signin',
+    name: 'signin',
+    component: SigninView,
+    meta: {
+      title: 'Signin'
+    }
+  },
+  {
+    path: '/auth/signup',
+    name: 'signup',
+    component: SignupView,
+    meta: {
+      title: 'Signup'
+    }
+  },
+
+  // Template routes 
   {
     path: '/forms/form-elements',
     name: 'formElements',
@@ -54,46 +164,6 @@ const routes = [
     component: FormLayoutView,
     meta: {
       title: 'Form Layout'
-    }
-  },
-  {
-    path: '/sales',
-    name: 'sales',
-    component: SalesView,
-    meta: {
-      title: 'Voucher Sales'
-    }
-  },
-  {
-    path: '/vouchers',
-    name: 'vouchers',
-    component: VouchersView,
-    meta: {
-      title: 'Vouchers'
-    }
-  },
-  {
-    path: '/agents',
-    name: 'agents',
-    component: AgentsView,
-    meta: {
-      title: 'Agents'
-    }
-  },
-  {
-    path: '/pages/settings',
-    name: 'settings',
-    component: SettingsView,
-    meta: {
-      title: 'Settings'
-    }
-  },
-  {
-    path: '/charts/basic-chart',
-    name: 'basicChart',
-    component: BasicChartView,
-    meta: {
-      title: 'Basic Chart'
     }
   },
   {
@@ -112,22 +182,6 @@ const routes = [
       title: 'Buttons'
     }
   },
-  {
-    path: '/auth/signin',
-    name: 'signin',
-    component: SigninView,
-    meta: {
-      title: 'Signin'
-    }
-  },
-  {
-    path: '/auth/signup',
-    name: 'signup',
-    component: SignupView,
-    meta: {
-      title: 'Signup'
-    }
-  }
 ]
 
 const router = createRouter({

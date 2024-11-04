@@ -21,6 +21,7 @@ export const useSalesStore = defineStore('sales', {
     loading: false,
     error: null as string | null,
   }),
+  
   actions: {
     async fetchTransactions() {
       this.loading = true;
@@ -49,6 +50,7 @@ export const useSalesStore = defineStore('sales', {
           },
         });
         this.agentTransactions = response.data; // Update state with agent-specific transactions
+        return response.data;
       } catch (err: any) {
         this.error = err.response?.data?.message || err.message || 'Failed to fetch user transactions';
       } finally {

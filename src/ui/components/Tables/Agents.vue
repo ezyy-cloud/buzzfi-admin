@@ -29,6 +29,7 @@
     <Modal :show="showModal" @close="showModal = false">
       <h2 class="text-xl font-semibold mb-4">Add New Agent</h2>
       <form @submit.prevent="addAgentHandler">
+        <!-- Name Field -->
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="name"
             >Name</label
@@ -42,6 +43,8 @@
             required
           />
         </div>
+
+        <!-- Email Field -->
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="email"
             >Email</label
@@ -55,6 +58,8 @@
             required
           />
         </div>
+
+        <!-- Password Field -->
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="password"
             >Password</label
@@ -68,7 +73,78 @@
             required
           />
         </div>
-        <div class="flex justify-end">
+
+        <!-- Phone Number Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"
+            >Phone Number</label
+          >
+          <input
+            v-model="contactPhone"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="phone"
+            type="tel"
+            placeholder="Phone Number"
+          />
+        </div>
+
+        <!-- Assigned Site Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="add-site">
+            Assigned Site
+          </label>
+          <select
+            v-model="site"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="add-site"
+            required
+          >
+            <option v-for="site in sites" :key="site.id" :value="site.id.toString()">
+              {{ site.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Role Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="role"
+            >Role</label
+          >
+          <select
+            v-model="role"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="role"
+          >
+            <option value="Agent">Agent</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Manager">Manager</option>
+          </select>
+        </div>
+
+        <!-- Status Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="status"
+            >Active</label
+          >
+          <select
+            v-model="status"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="status"
+          >
+            <option :value="true">Yes</option>
+            <option :value="false">No</option>
+          </select>
+        </div>
+
+        <!-- Message and Buttons -->
+        <div class="mb-4">{{ modalMessage }}</div>
+        <div class="flex justify-between align-center mb-4">
+          <button
+            class="bg-grey-500 text-white py-2 px-4 rounded"
+            @click.prevent="showModal = false"
+          >
+            Close
+          </button>
           <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">
             Add
           </button>
@@ -80,6 +156,7 @@
     <Modal :show="showEditModal" @close="showEditModal = false">
       <h2 class="text-xl font-semibold mb-4">Edit Agent</h2>
       <form @submit.prevent="updateAgentHandler">
+        <!-- Name Field -->
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-name"
             >Name</label
@@ -93,6 +170,8 @@
             required
           />
         </div>
+
+        <!-- Email Field -->
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-email"
             >Email</label
@@ -106,7 +185,77 @@
             required
           />
         </div>
-        <div class="flex justify-end">
+
+        <!-- Phone Number Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-phone"
+            >Phone Number</label
+          >
+          <input
+            v-model="editAgent.contactPhone"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="edit-phone"
+            type="tel"
+            placeholder="Phone Number"
+          />
+        </div>
+
+        <!-- Site Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-site">
+            Assigned Site
+          </label>
+          <select
+            v-model="editAgent.site"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="edit-site"
+            required
+          >
+            <option v-for="site in sites" :key="site.id" :value="site.id.toString()">
+              {{ site.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Role Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-role"
+            >Role</label
+          >
+          <select
+            v-model="editAgent.role"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="edit-role"
+          >
+            <option value="Agent">Agent</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Manager">Manager</option>
+          </select>
+        </div>
+
+        <!-- Status Field -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-status"
+            >Active</label
+          >
+          <select
+            v-model="editAgent.active"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="edit-status"
+          >
+            <option :value="true">Yes</option>
+            <option :value="false">No</option>
+          </select>
+        </div>
+
+        <!-- Update Button -->
+        <div class="flex justify-between align-center mb-4">
+          <button
+            class="bg-grey-500 text-white py-2 px-4 rounded"
+            @click.prevent="showEditModal = false"
+          >
+            Close
+          </button>
           <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">
             Update
           </button>
@@ -146,7 +295,7 @@
           <h5 class="text-sm font-medium uppercase xsm:text-base">Name</h5>
         </div>
         <div class="p-2.5 text-center xl:p-5">
-          <h5 class="text-sm font-medium uppercase xsm:text-base">Email</h5>
+          <h5 class="text-sm font-medium uppercase xsm:text-base">Contact</h5>
         </div>
         <div class="p-2.5 text-center xl:p-5">
           <h5 class="text-sm font-medium uppercase xsm:text-base">Role</h5>
@@ -155,7 +304,7 @@
           <h5 class="text-sm font-medium uppercase xsm:text-base">Active</h5>
         </div>
         <div class="hidden p-2.5 text-center sm:block xl:p-5">
-          <h5 class="text-sm font-medium uppercase xsm:text-base">Location</h5>
+          <h5 class="text-sm font-medium uppercase xsm:text-base">Site</h5>
         </div>
         <div class="hidden p-2.5 text-center sm:block xl:p-5">
           <h5 class="text-sm font-medium uppercase xsm:text-base">Sales</h5>
@@ -173,22 +322,24 @@
         }`"
       >
         <div class="flex items-center p-2.5 xl:p-5">
-          <p class="text-black dark:text-white">{{ agent.name || "Unknown" }}</p>
+          <p class="text-black dark:text-white">{{ agent.name }}</p>
         </div>
         <div class="flex items-center justify-center p-2.5 xl:p-5">
-          <p class="text-black dark:text-white">{{ agent.email }}</p>
+          <p class="text-black dark:text-white">{{ agent.contactPhone }}</p>
         </div>
         <div class="flex items-center justify-center p-2.5 xl:p-5">
-          <p class="text-black dark:text-white">{{ agent.role || "Agent" }}</p>
+          <p class="text-black dark:text-white">{{ agent.role }}</p>
         </div>
         <div class="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
           <p class="text-black dark:text-white">{{ agent.active ? "Yes" : "No" }}</p>
         </div>
         <div class="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-          <p class="text-black dark:text-white">{{ agent.location || "Century Mall" }}</p>
+          <p class="text-black dark:text-white">
+            {{ agent.siteName }}
+          </p>
         </div>
         <div class="hidden items-center justify-center p-2.5 sm:flex xl:p-5">
-          <p class="text-black dark:text-white">${{ agent.totalSales || 0 }}</p>
+          <p class="text-black dark:text-white">${{ agent.totalSales }}</p>
         </div>
         <div class="hidden items-center justify-center p-2.5 sm:flex xl:p-5 space-x-4">
           <div
@@ -235,21 +386,28 @@ import { useAgentsStore } from "@/stores/agents";
 import { useSalesStore } from "@/stores/voucherSales";
 import Modal from "@/ui/components/Modals/FormModal.vue";
 import calculateTotalSales from "@/utilities/totalSales";
+import { useSitesStore } from "@/stores/sites";
 
 const showModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
-
+const modalMessage = ref("");
 const agentsStore = useAgentsStore();
 const salesStore = useSalesStore();
+const sitesStore = useSitesStore();
 const agents = ref([]);
 const name = ref("");
 const email = ref("");
 const password = ref("");
+const contactPhone = ref("");
+const site = ref("");
+const role = ref("");
+const status = ref(false);
 const editAgent = ref({});
 const deleteAgent = ref({});
 const loading = ref(true);
 const error = ref(null);
+const sites = ref([]);
 
 const fetchAgents = async () => {
   try {
@@ -257,10 +415,23 @@ const fetchAgents = async () => {
     await agentsStore.fetchAgents();
     agents.value = agentsStore.agents;
 
-    // Fetch sales data for each agent
+    // Fetch sales data & site names for each agent
     for (const agent of agents.value) {
       agent.totalSales = await getSales(agent.id);
+      agent.siteName = await getSiteName(agent.site);
     }
+  } catch (err) {
+    error.value = err.response?.data?.message || err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchSites = async () => {
+  try {
+    loading.value = true;
+    const fetchedSites = await sitesStore.fetchSites();
+    sites.value = fetchedSites;
   } catch (err) {
     error.value = err.response?.data?.message || err.message;
   } finally {
@@ -279,28 +450,61 @@ const getSales = async (agentId) => {
   }
 };
 
+const getSiteName = async (siteId) => {
+  try {
+    const site = await sitesStore.fetchSiteById(siteId);
+
+    return site.name;
+  } catch (err) {
+    console.error("Error fetching site:", err);
+    return null; // Return null or handle the error as needed
+  }
+};
+
 const addAgentHandler = async () => {
   try {
-    await agentsStore.addAgent({
+    let response = await agentsStore.addAgent({
       name: name.value,
       email: email.value,
       password: password.value,
       password_confirmation: password.value,
+      contactPhone: contactPhone.value,
+      site: site.value,
+      role: role.value,
+      status: status.value,
     });
-    showModal.value = false;
-    fetchAgents();
+
+    if (response === "success") {
+      showModal.value = false;
+      fetchAgents();
+    } else {
+      console.log(response);
+      modalMessage.value = response.password
+        ? response.password[0]
+        : "Failed to add agent";
+    }
   } catch (err) {
-    error.value = err.response?.data?.message || err.message;
+    error.value = err.response?.data || err.message;
   }
 };
 
 const updateAgentHandler = async () => {
   try {
-    await agentsStore.updateAgent(editAgent.value);
-    showEditModal.value = false;
-    fetchAgents();
+    // Attempt to update the agent using the store method
+    let response = await agentsStore.updateAgent(editAgent.value);
+    // Assuming response is the updated agent or a success message
+    if (response == "success") {
+      fetchAgents(); // Refresh agent data
+      modalMessage.value = "Agent updated successfully!";
+      showEditModal.value = false;
+    }
   } catch (err) {
-    error.value = err.response?.data?.message || err.message;
+    // Update the error state with a user-friendly message
+    error.value =
+      err.response?.data?.message ||
+      err.message ||
+      "An error occurred while updating the agent.";
+    modalMessage.value = error.value; // Optionally display the error message in the modal
   }
 };
 
@@ -324,7 +528,10 @@ const editAgentAction = (agent) => {
   showEditModal.value = true;
 };
 
-onMounted(fetchAgents);
+onMounted(async () => {
+  await fetchAgents(); // Fetch agents first
+  await fetchSites();
+});
 </script>
 
 <style scoped>

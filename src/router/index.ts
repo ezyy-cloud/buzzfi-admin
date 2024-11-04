@@ -9,6 +9,7 @@ import ButtonsView from '@/ui/views/Templates/UiElements/ButtonsView.vue'
 // Sales Views
 import DahsboardView from '@/ui/views/Sales/SalesDahsboardView.vue'
 import AgentsView from '@/ui/views/Sales/AgentsView.vue'
+import SitesView from '@/ui/views/Sales/SitesView.vue'
 import SalesView from '@/ui/views/Sales/SalesView.vue'
 import VouchersView from '@/ui/views/Sales/VouchersView.vue'
 import CalendarView from '@/ui/views/Sales/CalendarView.vue'
@@ -52,6 +53,14 @@ const routes = [
     component: AgentsView,
     meta: {
       title: 'Agents'
+    }
+  },
+  {
+    path: '/sites',
+    name: 'sites',
+    component: SitesView,
+    meta: {
+      title: 'Sites'
     }
   },
   {

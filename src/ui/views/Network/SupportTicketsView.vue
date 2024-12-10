@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import BreadcrumbDefault from "@/ui/components/Breadcrumbs/BreadcrumbDefault.vue";
 import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
+import SupportTicket from "@/ui/components/Tables/SupportTicket.vue";
 
 const pageTitle = ref("Support Tickets");
 </script>
@@ -12,7 +13,7 @@ const pageTitle = ref("Support Tickets");
     <BreadcrumbDefault :pageTitle="pageTitle" />
     <!-- Breadcrumb End -->
 
-    <div class="flex flex-col gap-10"></div>
+    <div class="flex flex-col gap-10"><SupportTicket /></div>
   </DefaultLayout>
 </template>
 

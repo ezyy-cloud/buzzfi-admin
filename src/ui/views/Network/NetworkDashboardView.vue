@@ -326,7 +326,7 @@ const chartOptions = reactive({
     fill: { opacity: 1 },
     tooltip: {
       y: {
-        formatter: function (val) {
+        formatter: function (val: string) {
           return val + " clients";
         },
       },

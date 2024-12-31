@@ -80,7 +80,7 @@ interface UplinkStats {
   satisfaction: number;
 }
 
-interface UnifiDevice {
+export interface UnifiDevice {
   _id: string;
   ip: string;
   mac: string;
@@ -110,7 +110,7 @@ interface UnifiDevice {
   }>;
   radio_table: RadioTableEntry[];
   vap_table: VapTableEntry[];
-  uplink?: {
+  uplink: {
     type: string;
     up: boolean;
     name: string;
@@ -134,7 +134,7 @@ interface UnifiDevice {
     uplink_mac: string;
     uplink_device_name?: string;
   }>;
-  system_stats?: {
+  "system-stats": {
     cpu: string;
     mem: string;
     uptime: string;
@@ -179,7 +179,8 @@ interface UnifiDevice {
   }>;
 }
 
-interface UnifiClient {
+export interface UnifiClient {
+  last_uplink_name: string;
   _id: string;
   mac: string;
   site_id: string;

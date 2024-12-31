@@ -72,11 +72,6 @@ const fetchData = async () => {
   loading.value = true;
   try {
     await networkStore.fetchClients();
-    console.log('Clients with OUI:', networkStore.clients.map(client => ({
-      id: client.id,
-      oui: client.oui,
-      name: client.name
-    })));
   } catch (error) {
     console.error('Error fetching clients:', error);
   } finally {

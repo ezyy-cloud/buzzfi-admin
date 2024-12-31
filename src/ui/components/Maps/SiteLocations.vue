@@ -20,7 +20,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 const sitesStore = useSitesStore();
-const mapContainer = ref(null);
+const mapContainer = ref<HTMLElement | null>(null);
 let map: L.Map | null = null;
 let markerGroup: L.LayerGroup | null = null;
 
@@ -47,6 +47,8 @@ const validateCoordinates = (lat: number, lng: number): boolean => {
 const initMap = async () => {
   // Fetch sites data
   await sitesStore.fetchSites();
+
+  if (!mapContainer.value) return;
 
   // Create map instance with no zoom control (we'll add it later)
   map = L.map(mapContainer.value, {

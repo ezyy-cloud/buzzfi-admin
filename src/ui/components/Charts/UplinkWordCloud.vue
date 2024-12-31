@@ -26,7 +26,7 @@ const words = computed(() => {
 const cloudStyles = {
   fontFamily: 'Helvetica, Arial, sans-serif',
   fontWeight: 'bold',
-  color: function(word, weight) {
+  color: function(word: String, weight: number) {
     return weight > 8 ? '#3C50E0' : 
            weight > 6 ? '#6577F3' : 
            weight > 4 ? '#8FD0EF' : 

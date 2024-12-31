@@ -20,6 +20,7 @@ export const useSalesStore = defineStore('sales', {
     agentTransactions: [] as Transaction[], // State for agent-specific transactions
     loading: false,
     error: null as string | null,
+    pollingInterval: null as NodeJS.Timeout | null,
   }),
   
   actions: {
@@ -29,7 +30,7 @@ export const useSalesStore = defineStore('sales', {
       try {
         const response = await axios.get<Transaction[]>(`${API_URL}/transactions`, {
           headers: {
-            'Authorization': `Bearer ${TOKEN }`,
+            'Authorization': `Bearer ${TOKEN}`,
           },
         });
         this.transactions = response.data;
@@ -46,7 +47,7 @@ export const useSalesStore = defineStore('sales', {
       try {
         const response = await axios.get<Transaction[]>(`${API_URL}/transactions/user/${agentId}`, {
           headers: {
-            'Authorization': `Bearer ${TOKEN }`,
+            'Authorization': `Bearer ${TOKEN}`,
           },
         });
         this.agentTransactions = response.data; // Update state with agent-specific transactions
@@ -57,5 +58,22 @@ export const useSalesStore = defineStore('sales', {
         this.loading = false;
       }
     },
+
+    startPolling(interval: number = 5000) {
+      // Clear any existing interval
+      this.stopPolling();
+      
+      // Start new polling interval
+      this.pollingInterval = setInterval(async () => {
+        await this.fetchTransactions();
+      }, interval);
+    },
+
+    stopPolling() {
+      if (this.pollingInterval) {
+        clearInterval(this.pollingInterval);
+        this.pollingInterval = null;
+      }
+    }
   },
 });

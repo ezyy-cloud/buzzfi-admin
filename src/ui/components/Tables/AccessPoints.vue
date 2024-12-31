@@ -47,7 +47,7 @@
               Clients
             </th>
             <th class="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-              Throughput
+              Throughput (Up/Down) Gbps
             </th>
             <th class="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
               Channel Util.
@@ -92,7 +92,7 @@
               {{ ap.clients }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              {{ ap.throughput.tx }} / {{ ap.throughput.rx }} Mbps
+              {{ ap.throughput.tx }} / {{ ap.throughput.rx }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
@@ -316,8 +316,8 @@ const formatUptime = (seconds) => {
 
 const formatThroughput = (bytes) => {
   if (!bytes) return '0';
-  const mbps = (bytes * 8) / (1024 * 1024); // Convert bytes/s to Mbps
-  return mbps.toFixed(1);
+  const gbps = (bytes * 8) / (1024 * 1024) /1024; // Convert bytes/s to Mbps
+  return gbps.toFixed(1);
 };
 
 // Computed property for access points from store
@@ -331,8 +331,8 @@ const aps = computed(() =>
     uptime: formatUptime(device.uptime),
     clients: device.radio_table_stats?.reduce((sum, radio) => sum + (radio.num_sta || 0), 0) || 0,
     throughput: {
-      tx: formatThroughput(device.tx_bytes_r),
-      rx: formatThroughput(device.rx_bytes_r)
+      tx: formatThroughput(device.tx_bytes),
+      rx: formatThroughput(device.rx_bytes)
     }
   }))
 );

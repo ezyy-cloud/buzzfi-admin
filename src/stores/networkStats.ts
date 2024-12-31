@@ -3,20 +3,207 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import { API_URL, TOKEN } from '@/config';
 
-interface NetworkData {
-  [key: string]: any;
+export interface RadioTableEntry {
+  name: string;
+  radio: 'ng' | 'na';
+  channel: string | number;
+  ht: number;
+  tx_power: number;
+  tx_power_mode: string;
+  min_txpower: number;
+  max_txpower: number;
+  nss: number;
+  radio_caps: number;
+  radio_caps2: number;
+  antenna_gain: number;
+  antenna_id: number;
+  builtin_antenna: boolean;
+  builtin_ant_gain: number;
+  current_antenna_gain: number;
+  has_dfs?: boolean;
+  has_fccdfs?: boolean;
+  is_11ac?: boolean;
+  channel_optimization_enabled?: boolean;
+  min_rssi_enabled?: boolean;
+  min_rssi?: number;
+  hard_noise_floor_enabled?: boolean;
+  vwire_enabled?: boolean;
+  state?: string;
+  num_sta?: number;
+  satisfaction?: number;
+  cu_total?: number;
+  cu_self_rx?: number;
+  cu_self_tx?: number;
+  signal?: number;
+  signal_strength?: number;
+}
+
+export interface VapTableEntry {
+  name: string;
+  bssid: string;
+  essid: string;
+  radio: string;
+  radio_name: string;
+  up: boolean;
+  enabled: boolean;
+  is_guest: boolean;
+  is_wep: boolean;
+  usage: 'user' | 'guest';
+  tx_bytes: number;
+  rx_bytes: number;
+  tx_errors: number;
+  tx_retries: number;
+  tx_packets: number;
+  rx_packets: number;
+  num_sta: number;
+  channel: number;
+  rx_nwids: number;
+  rx_crypts: number;
+  rx_frags: number;
+  satisfaction: number;
+  state: string;
+  tx_power: number;
+  id?: string;
+  wlanconf_id?: string;
+  site_id?: string;
+}
+
+export interface UplinkStats {
+  rx_bytes: number;
+  tx_bytes: number;
+  rx_bytes_mov: number;
+  tx_bytes_mov: number;
+  rx_packets: number;
+  tx_packets: number;
+  rx_rate: number;
+  tx_rate: number;
+  rx_retries: number;
+  tx_retries: number;
+  satisfaction: number;
+}
+
+export interface UnifiDevice {
+  _id: string;
+  ip: string;
+  mac: string;
+  type: string;
+  model: string;
+  model_in_lts: boolean;
+  model_in_eol: boolean;
+  name: string;
+  state: number;
+  adopted: boolean;
+  adopted_at: number;
+  adopted_by_client: string;
+  site_id: string;
+  x_authkey: string;
+  cfgversion: string;
+  inform_url: string;
+  inform_ip: string;
+  version: string;
+  uptime?: number;
+  tx_bytes?: number;
+  rx_bytes?: number;
+  tx_bytes_r?: number;
+  rx_bytes_r?: number;
+  system_stats?: {
+    cpu: string;
+    mem: string;
+    uptime: string;
+    loadavg_1: string;
+  };
+  radio_table_stats?: RadioTableEntry[];
+  stat?: {
+    tx_bytes: number;
+    rx_bytes: number;
+  };
+  uplink?: {
+    drops: number;
+    errors: number;
+    latency: number;
+  };
+}
+
+export interface UnifiClient {
+  _id: string;
+  mac: string;
+  site_id: string;
+  is_guest: boolean;
+  first_seen: number;
+  last_seen: number;
+  is_wired: boolean;
+  name?: string;
+  hostname?: string;
+  ip: string;
+  network_id?: string;
+  oui?: string;
+  radio?: 'ng' | 'na';
+  radio_name?: string;
+  essid?: string;
+  bssid?: string;
+  channel?: number;
+  radio_proto?: string;
+  tx_rate?: number;
+  rx_rate?: number;
+  tx_power?: number;
+  idletime?: number;
+  dhcpend_time?: number;
+  uptime?: number;
+  tx_bytes: number;
+  rx_bytes: number;
+  tx_bytes_r?: number;
+  rx_bytes_r?: number;
+  tx_packets: number;
+  tx_retries: number;
+  wifi_tx_attempts?: number;
+  rx_packets: number;
+  signal?: number;
+  rssi?: number;
+  noise?: number;
+  satisfaction?: number;
+  satisfaction_now?: number;
+  satisfaction_real?: number;
+  state?: number;
+  state_ht?: boolean;
+  state_pwrmgt?: boolean;
+  dev_cat?: number;
+  dev_family?: number;
+  dev_vendor?: number;
+  dev_id?: number;
+  network?: string;
+  blocked?: boolean;
+  use_fixedip?: boolean;
+  noted?: boolean;
+  assoc_time?: number;
+  latest_assoc_time?: number;
+  qos_policy_applied?: boolean;
+  anomalies?: number;
+  fingerprint_override?: boolean;
+  fingerprint_source?: string;
+  last_uplink_name?: string;
+}
+
+export interface NetworkData {
+  sites: any[];
+  clients: UnifiClient[];
+  devices: UnifiDevice[];
+  users: any[];
+  health: any[];
+  dashboard: any[];
+  alarms: any[];
+  events: any[];
 }
 
 export const useNetworkStore = defineStore('network', {
   state: () => ({
-    sites: [] as NetworkData[],
-    clients: [] as NetworkData[],
-    devices: [] as NetworkData[],
-    users: [] as NetworkData[],
-    health: [] as NetworkData[],
-    dashboard: [] as NetworkData[],
-    alarms: [] as NetworkData[],
-    events: [] as NetworkData[],
+    sites: [] as any[],
+    clients: [] as UnifiClient[],
+    devices: [] as UnifiDevice[],
+    users: [] as any[],
+    health: [] as any[],
+    dashboard: [] as any[],
+    alarms: [] as any[],
+    events: [] as any[],
     loading: false,
     error: null as string | null,
   }),
@@ -49,17 +236,18 @@ export const useNetworkStore = defineStore('network', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.get<NetworkData[]>(url, {
+        const response = await axios.get(url, {
           headers: {
-            'Authorization': `Bearer ${TOKEN}`,
-          },
+            'Authorization': `Bearer ${TOKEN}`
+          }
         });
-        (this as any)[stateKey] = response.data;
-      } catch (err: any) {
-        this.error = err.response?.data?.message || err.message || `Failed to fetch ${String(stateKey)}`;
+        this[stateKey] = response.data;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'An error occurred';
+        console.error('Error fetching data:', error);
       } finally {
         this.loading = false;
       }
-    },
+    }
   },
 });

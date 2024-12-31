@@ -1,104 +1,117 @@
-<script setup lang="ts">
-import { ref } from "vue";
-import { RouterLink } from "vue-router";
-
-import UserOne from "@/ui/assets/images/user/user-01.png";
-import UserTwo from "@/ui/assets/images/user/user-02.png";
-import UserThree from "@/ui/assets/images/user/user-03.png";
-import UserFour from "@/ui/assets/images/user/user-04.png";
-import UserFive from "@/ui/assets/images/user/user-05.png";
-
-const chatData = ref([
-  {
-    avatar: UserOne,
-    name: "Devid Heilo",
-    text: "How are you?",
-    time: 12,
-    textCount: 3,
-    color: "#10B981",
-  },
-  {
-    avatar: UserTwo,
-    name: "Henry Fisher",
-    text: "Waiting for you!",
-    time: 12,
-    textCount: 0,
-    color: "#DC3545",
-  },
-  {
-    avatar: UserFour,
-    name: "Jhon Doe",
-    text: "What's up?",
-    time: 32,
-    textCount: 0,
-    color: "#10B981",
-  },
-  {
-    avatar: UserFive,
-    name: "Jane Doe",
-    text: "Great",
-    time: 32,
-    textCount: 2,
-    color: "#FFBA00",
-  },
-  {
-    avatar: UserOne,
-    name: "Jhon Doe",
-    text: "How are you?",
-    time: 32,
-    textCount: 0,
-    color: "#10B981",
-  },
-  {
-    avatar: UserThree,
-    name: "Jhon Doe",
-    text: "How are you?",
-    time: 32,
-    textCount: 3,
-    color: "#FFBA00",
-  },
-]);
-</script>
-
 <template>
-  <div
-    class="col-span-12 rounded-sm border border-stroke bg-white py-6 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4"
-  >
-    <h4 class="mb-6 px-7.5 text-xl font-semibold text-black dark:text-white">
-      Vendor Revenue
+  <div class="col-span-12 rounded-sm border border-stroke bg-white py-6 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
+    <h4 class="mb-6 px-7.5 text-xl font-bold text-black dark:text-white">
+      Agent Revenue
     </h4>
 
     <div>
-      <template v-for="(chat, index) in chatData" :key="index">
-        <RouterLink
-          to="/"
-          class="flex items-center gap-5 py-3 px-7.5 hover:bg-gray-3 dark:hover:bg-meta-4"
-        >
+      <div v-if="loading" class="flex items-center justify-center py-4">
+        <div class="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+      </div>
+      
+      <div v-else-if="error" class="px-7.5 text-danger">
+        {{ error }}
+      </div>
+
+      <div v-else class="flex flex-col gap-4">
+        <div v-for="agent in agentRevenueList" :key="agent.id" class="flex items-center gap-5 px-7.5 py-3 hover:bg-gray-3 dark:hover:bg-meta-4">
           <div class="relative h-14 w-14 rounded-full">
-            <img :src="chat.avatar" alt="User" />
-            <span
-              class="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-white"
-              :style="{ backgroundColor: chat.color }"
-            ></span>
+            <img :src="agent.avatar || defaultAvatar" :alt="agent.name" class="h-full w-full rounded-full object-cover object-center" />
+            <span :class="agent.active ? 'bg-success' : 'bg-danger'" class="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-white"></span>
           </div>
 
           <div class="flex flex-1 items-center justify-between">
             <div>
-              <h5 class="font-medium text-black dark:text-white">{{ chat.name }}</h5>
-              <p>
-                <span class="text-sm text-black dark:text-white">{{ chat.text }}</span>
-                <span class="text-xs"> . {{ chat.time }} min</span>
-              </p>
+              <h5 class="font-medium text-black dark:text-white">
+                {{ agent.name }}
+              </h5>
+              <p class="text-sm">{{ formatCurrency(agent.revenue) }}</p>
             </div>
-            <div
-              v-if="chat.textCount !== 0"
-              class="flex h-6 w-6 items-center justify-center rounded-full bg-primary"
-            >
-              <span class="text-sm font-medium text-white"> {{ chat.textCount }}</span>
-            </div>
+            <span class="text-sm text-meta-3" v-if="agent.salesCount">
+              {{ agent.salesCount }} sales
+            </span>
           </div>
-        </RouterLink>
-      </template>
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useAgentsStore } from '@/stores/agents';
+import { useSalesStore } from '@/stores/voucherSales';
+import defaultAvatar from '@/ui/assets/images/user/user-01.png';
+
+interface AgentRevenue {
+  id: number;
+  name: string;
+  revenue: number;
+  salesCount: number;
+  active: boolean;
+  avatar?: string;
+}
+
+const agentsStore = useAgentsStore();
+const salesStore = useSalesStore();
+const loading = ref(false);
+const error = ref<string | null>(null);
+const agentRevenueList = ref<AgentRevenue[]>([]);
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+};
+
+const calculateAgentRevenue = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    // Fetch all agents
+    await agentsStore.fetchAgents();
+    
+    // Calculate revenue for each agent
+    const revenueData = await Promise.all(
+      agentsStore.agents.map(async (agent) => {
+        // Fetch agent-specific transactions and store the result directly
+        const transactions = await salesStore.fetchAgentTransactions(agent.id);
+        
+        // Calculate total revenue and sales from transactions
+        let totalRevenue = 0;
+        let totalSales = 0;
+        
+        // Use the returned transactions directly instead of accessing store state
+        transactions?.forEach(transaction => {
+          const voucherCount = JSON.parse(transaction.voucher_codes || '[]').length;
+          totalRevenue += voucherCount * parseFloat(transaction.price || '0');
+          totalSales += voucherCount;
+        });
+        
+        return {
+          id: agent.id,
+          name: agent.name,
+          revenue: totalRevenue,
+          salesCount: totalSales,
+          active: agent.active || false,
+          avatar: undefined
+        };
+      })
+    );
+
+    // Sort by revenue (highest first)
+    agentRevenueList.value = revenueData.sort((a, b) => b.revenue - a.revenue);
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Failed to calculate agent revenue';
+    console.error('Error calculating agent revenue:', err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  calculateAgentRevenue();
+});
+</script>

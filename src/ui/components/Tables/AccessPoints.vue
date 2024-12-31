@@ -71,7 +71,7 @@
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <span
                 :class="`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  ap.status === 'Online'
+                  ap.status === 'online'
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`"
@@ -83,16 +83,16 @@
               {{ ap.model }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              {{ ap.ipAddress }}
+              {{ ap.ip }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               {{ ap.uptime }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              {{ ap.connectedClients }}
+              {{ ap.clients }}
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-              {{ ap.totalThroughput }} Mbps
+              {{ ap.throughput.tx }} / {{ ap.throughput.rx }} Mbps
             </td>
             <td class="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
               <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
@@ -229,8 +229,8 @@
               id="edit-status"
               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             >
-              <option value="Online">Online</option>
-              <option value="Offline">Offline</option>
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
             </select>
           </div>
           <div>
@@ -301,52 +301,41 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
+import { useNetworkStore } from "@/stores/networkStats";
 
-const aps = ref([
-  {
-    id: "1",
-    name: "AP-Office-1",
-    status: "Online",
-    model: "UniFi AP-AC-Pro",
-    ipAddress: "192.168.1.10",
-    uptime: "5d 12h",
-    connectedClients: 15,
-    totalThroughput: 450,
-    channelUtilization: 65,
-    signalStrength: -55,
-    txRate: 780,
-    rxRate: 650,
-  },
-  {
-    id: "2",
-    name: "AP-Lobby",
-    status: "Online",
-    model: "UniFi AP-nanoHD",
-    ipAddress: "192.168.1.11",
-    uptime: "3d 8h",
-    connectedClients: 8,
-    totalThroughput: 320,
-    channelUtilization: 45,
-    signalStrength: -60,
-    txRate: 650,
-    rxRate: 580,
-  },
-  {
-    id: "3",
-    name: "AP-Warehouse",
-    status: "Offline",
-    model: "UniFi AP-AC-LR",
-    ipAddress: "192.168.1.12",
-    uptime: "0d 0h",
-    connectedClients: 0,
-    totalThroughput: 0,
-    channelUtilization: 0,
-    signalStrength: 0,
-    txRate: 0,
-    rxRate: 0,
-  },
-]);
+const networkStore = useNetworkStore();
+
+// Helper functions for formatting
+const formatUptime = (seconds) => {
+  if (!seconds) return '0d 0h';
+  const days = Math.floor(seconds / (24 * 3600));
+  const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+  return `${days}d ${hours}h`;
+};
+
+const formatThroughput = (bytes) => {
+  if (!bytes) return '0';
+  const mbps = (bytes * 8) / (1024 * 1024); // Convert bytes/s to Mbps
+  return mbps.toFixed(1);
+};
+
+// Computed property for access points from store
+const aps = computed(() => 
+  networkStore.devices.map(device => ({
+    id: device._id,
+    name: device.name || device.mac,
+    status: device.state === 1 && device.adopted ? 'online' : 'offline',
+    model: device.model,
+    ip: device.ip,
+    uptime: formatUptime(device.uptime),
+    clients: device.radio_table_stats?.reduce((sum, radio) => sum + (radio.num_sta || 0), 0) || 0,
+    throughput: {
+      tx: formatThroughput(device.tx_bytes_r),
+      rx: formatThroughput(device.rx_bytes_r)
+    }
+  }))
+);
 
 const showAddModal = ref(false);
 const showEditModal = ref(false);
@@ -354,7 +343,7 @@ const showDeleteModal = ref(false);
 const currentAP = ref(null);
 const newAP = reactive({
   name: "",
-  status: "Online",
+  status: "online",
   model: "",
   ipAddress: "",
   uptime: "0d 0h",
@@ -372,7 +361,7 @@ const addAP = () => {
   showAddModal.value = false;
   Object.assign(newAP, {
     name: "",
-    status: "Online",
+    status: "online",
     model: "",
     ipAddress: "",
     uptime: "0d 0h",

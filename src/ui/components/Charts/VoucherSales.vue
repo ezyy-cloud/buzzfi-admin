@@ -152,7 +152,7 @@ const apexOptions = computed(() => ({
     fontFamily: "Satoshi, sans-serif",
     height: 335,
     type: "area",
-    stacked: true,
+    stacked: false,
     dropShadow: {
       enabled: true,
       color: "#623CEA14",

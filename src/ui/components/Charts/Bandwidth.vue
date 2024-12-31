@@ -1,213 +1,329 @@
 <template>
-  <div class="bandwidth-dashboard">
-    <div class="dark:bg-boxdark shadow-md rounded-lg overflow-hidden p-10 my-10">
-      <h2 class="text-white">Gateway Bandwidth Usage</h2>
-      <apexchart
-        type="area"
+  <div class="grid grid-cols-1 gap-4">
+    <div class="bg-white dark:bg-boxdark rounded-lg shadow p-4">
+      <h3 class="text-lg font-semibold mb-4 dark:text-white">Top Clients Bandwidth Usage</h3>
+      <VueApexCharts
+        :options="chartOptions.clients"
+        :series="series.clients"
         height="350"
-        :options="chartOptions.gateway"
-        :series="series.gateway"
-      ></apexchart>
+      />
     </div>
-
-    <div class="dark:bg-boxdark shadow-md rounded-lg overflow-hidden p-10 my-10">
-      <h2 class="text-white">SSID Bandwidth Distribution</h2>
-      <apexchart
-        type="pie"
-        height="350"
+    <div class="bg-white dark:bg-boxdark rounded-lg shadow p-4">
+      <h3 class="text-lg font-semibold mb-4 dark:text-white">SSID Bandwidth Distribution</h3>
+      <VueApexCharts
         :options="chartOptions.ssid"
         :series="series.ssid"
-      ></apexchart>
+        height="350"
+      />
     </div>
-
-    <div class="chart-grid">
-      <div class="dark:bg-boxdark shadow-md rounded-lg overflow-hidden p-10">
-        <h2>Top Clients Bandwidth Usage</h2>
-        <apexchart
-          type="bar"
-          height="350"
-          :options="chartOptions.clients"
-          :series="series.clients"
-        ></apexchart>
-      </div>
-      <div class="dark:bg-boxdark shadow-md rounded-lg overflow-hidden p-10">
-        <h2>DPI Application Bandwidth Usage</h2>
-        <apexchart
-          type="treemap"
-          height="350"
-          :options="chartOptions.dpi"
-          :series="series.dpi"
-        ></apexchart>
-      </div>
+    <div class="bg-white dark:bg-boxdark rounded-lg shadow p-4">
+      <h3 class="text-lg font-semibold mb-4 dark:text-white">DPI Application Usage</h3>
+      <VueApexCharts
+        :options="chartOptions.dpi"
+        :series="series.dpi"
+        height="350"
+      />
     </div>
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted } from "vue";
+<script setup>
+import { ref, computed, onMounted, watch } from "vue";
 import VueApexCharts from "vue3-apexcharts";
+import { useNetworkStore } from "@/stores/networkStats";
 
-export default defineComponent({
-  name: "BandwidthDashboard",
-  components: {
-    apexchart: VueApexCharts,
+const networkStore = useNetworkStore();
+
+// Get current theme
+const isDarkMode = computed(() => document.documentElement.classList.contains('dark'));
+
+// Common chart theme
+const getChartTheme = computed(() => ({
+  mode: isDarkMode.value ? 'dark' : 'light',
+  palette: 'palette1',
+  monochrome: {
+    enabled: false,
+    color: '#008FFB',
+    shadeTo: isDarkMode.value ? 'dark' : 'light',
+    shadeIntensity: 0.65
+  }
+}));
+
+const chartOptions = ref({
+  clients: {
+    chart: {
+      id: "client-bandwidth",
+      type: "bar",
+      stacked: true,
+      foreColor: isDarkMode.value ? '#A3AED0' : '#333',
+      background: 'transparent',
+      theme: getChartTheme.value,
+      toolbar: {
+        show: false
+      }
+    },
+    dataLabels: { 
+      enabled: false
+    },
+    xaxis: {
+      categories: [],
+      labels: {
+        show: true,
+        rotate: -45,
+        style: {
+          fontSize: '12px',
+          colors: isDarkMode.value ? '#A3AED0' : '#333'
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: "Bandwidth (MB)",
+        style: {
+          color: isDarkMode.value ? '#A3AED0' : '#333'
+        }
+      },
+      labels: {
+        show: true,
+        style: {
+          colors: isDarkMode.value ? '#A3AED0' : '#333'
+        },
+        formatter: function(val) {
+          return val.toFixed(1);
+        }
+      }
+    },
+    colors: ["#008FFB", "#00E396"],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        endingShape: 'rounded'
+      },
+    },
+    legend: {
+      show: true,
+      position: 'top',
+      horizontalAlign: 'center',
+      floating: false,
+      fontSize: '14px',
+      offsetY: 0,
+      itemMargin: {
+        horizontal: 10,
+        vertical: 0
+      },
+      labels: {
+        colors: isDarkMode.value ? '#A3AED0' : '#333'
+      }
+    },
+    tooltip: {
+      theme: isDarkMode.value ? 'dark' : 'light',
+      y: {
+        formatter: function(val) {
+          return val.toFixed(1) + ' MB';
+        }
+      }
+    }
   },
-  setup() {
-    const chartOptions = ref({
-      gateway: {
+  ssid: {
+    chart: {
+      id: "ssid-distribution",
+      type: "pie",
+      foreColor: isDarkMode.value ? '#A3AED0' : '#333',
+      background: 'transparent',
+      theme: getChartTheme.value
+    },
+    labels: [],
+    legend: {
+      position: 'bottom',
+      horizontalAlign: 'center',
+      offsetY: 8,
+      labels: {
+        colors: isDarkMode.value ? '#A3AED0' : '#333'
+      }
+    },
+    tooltip: {
+      theme: isDarkMode.value ? 'dark' : 'light'
+    },
+    responsive: [{
+      breakpoint: 480,
+      options: {
         chart: {
-          id: "gateway-bandwidth",
-          type: "area",
+          width: 200
         },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: [],
-        },
-        yaxis: {
-          title: {
-            text: "Bandwidth (Mbps)",
-          },
-        },
-        colors: ["#008FFB", "#00E396"],
-      },
-      clients: {
-        chart: {
-          id: "client-bandwidth",
-          type: "bar",
-          stacked: true,
-        },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: [],
-        },
-        yaxis: {
-          title: {
-            text: "Bandwidth (MB)",
-          },
-        },
-        colors: ["#008FFB", "#00E396"],
-      },
-      ssid: {
-        chart: {
-          id: "ssid-bandwidth",
-          type: "pie",
-        },
-        dataLabels: { enabled: false },
-        labels: [],
-        colors: ["#008FFB", "#00E396", "#FEB019", "#FF4560", "#775DD0"],
-      },
-      dpi: {
-        chart: {
-          id: "dpi-bandwidth",
-          type: "treemap",
-        },
-        colors: ["#008FFB", "#00E396", "#FEB019", "#FF4560", "#775DD0"],
-      },
-    });
-
-    const series = ref({
-      gateway: [
-        {
-          name: "Download",
-          data: [],
-        },
-        {
-          name: "Upload",
-          data: [],
-        },
-      ],
-      clients: [
-        {
-          name: "Download",
-          data: [],
-        },
-        {
-          name: "Upload",
-          data: [],
-        },
-      ],
-      ssid: [],
-      dpi: [
-        {
-          data: [],
-        },
-      ],
-    });
-
-    const fetchData = () => {
-      // Mock data for Gateway Bandwidth Usage
-      const gatewayData = Array.from({ length: 24 }, (_, i) => ({
-        time: new Date(2023, 0, 1, i, 0, 0).getTime() / 1000,
-        wan_rx_kbps: Math.floor(Math.random() * 500000) + 100000, // Random value between 100-600 Mbps
-        wan_tx_kbps: Math.floor(Math.random() * 200000) + 50000, // Random value between 50-250 Mbps
-      }));
-
-      chartOptions.value.gateway.xaxis.categories = gatewayData.map((d) =>
-        new Date(d.time * 1000).toLocaleTimeString()
-      );
-      series.value.gateway[0].data = gatewayData.map(
-        (d) => +(d.wan_rx_kbps / 1000).toFixed(2)
-      ); // Convert to Mbps
-      series.value.gateway[1].data = gatewayData.map(
-        (d) => +(d.wan_tx_kbps / 1000).toFixed(2)
-      ); // Convert to Mbps
-
-      // Mock data for Top Clients Bandwidth Usage
-      const clientsData = [
-        { hostname: "Laptop-1", rx_bytes: 1500000000, tx_bytes: 500000000 },
-        { hostname: "Phone-1", rx_bytes: 800000000, tx_bytes: 200000000 },
-        { hostname: "SmartTV", rx_bytes: 2000000000, tx_bytes: 100000000 },
-        { hostname: "Tablet", rx_bytes: 500000000, tx_bytes: 150000000 },
-        { hostname: "Desktop-1", rx_bytes: 1000000000, tx_bytes: 300000000 },
-      ];
-
-      chartOptions.value.clients.xaxis.categories = clientsData.map((c) => c.hostname);
-      series.value.clients[0].data = clientsData.map(
-        (c) => +(c.rx_bytes / (1024 * 1024)).toFixed(2)
-      ); // Convert to MB
-      series.value.clients[1].data = clientsData.map(
-        (c) => +(c.tx_bytes / (1024 * 1024)).toFixed(2)
-      ); // Convert to MB
-
-      // Mock data for SSID Bandwidth Distribution
-      const ssidData = [
-        { essid: "Main-2.4GHz", rx_bytes: 5000000000, tx_bytes: 2000000000 },
-        { essid: "Main-5GHz", rx_bytes: 10000000000, tx_bytes: 5000000000 },
-        { essid: "Guest", rx_bytes: 2000000000, tx_bytes: 500000000 },
-        { essid: "IoT", rx_bytes: 1000000000, tx_bytes: 200000000 },
-      ];
-
-      chartOptions.value.ssid.labels = ssidData.map((s) => s.essid);
-      series.value.ssid = ssidData.map(
-        (s) => +((s.rx_bytes + s.tx_bytes) / (1024 * 1024 * 1024)).toFixed(2)
-      ); // Convert to GB
-
-      // Mock data for DPI Application Bandwidth Usage
-      const dpiData = [
-        { category: "Streaming", rx_bytes: 15000000000, tx_bytes: 1000000000 },
-        { category: "Web Browsing", rx_bytes: 5000000000, tx_bytes: 1000000000 },
-        { category: "Social Media", rx_bytes: 3000000000, tx_bytes: 500000000 },
-        { category: "File Transfer", rx_bytes: 2000000000, tx_bytes: 8000000000 },
-        { category: "Gaming", rx_bytes: 1000000000, tx_bytes: 500000000 },
-      ];
-
-      series.value.dpi[0].data = dpiData.map((d) => ({
-        x: d.category,
-        y: +((d.rx_bytes + d.tx_bytes) / (1024 * 1024 * 1024)).toFixed(2), // Convert to GB
-      }));
-    };
-
-    onMounted(() => {
-      fetchData();
-      // Refresh mock data every 5 minutes
-      setInterval(fetchData, 5 * 60 * 1000);
-    });
-
-    return {
-      chartOptions,
-      series,
-    };
+        legend: {
+          position: 'bottom',
+          horizontalAlign: 'center'
+        }
+      }
+    }]
   },
+  dpi: {
+    chart: {
+      id: "dpi-usage",
+      type: "treemap",
+      foreColor: isDarkMode.value ? '#A3AED0' : '#333',
+      background: 'transparent',
+      theme: getChartTheme.value
+    },
+    dataLabels: {
+      enabled: true,
+      style: {
+        fontSize: '12px',
+        colors: [isDarkMode.value ? '#fff' : '#000']
+      },
+      formatter: function(text, op) {
+        return [text, op.value + ' GB']
+      }
+    },
+    plotOptions: {
+      treemap: {
+        enableShades: true,
+        shadeIntensity: 0.5,
+        reverseNegativeShade: true,
+        distributed: true,
+        colorScale: {
+          ranges: [
+            {
+              from: 0,
+              to: 100,
+              color: isDarkMode.value ? '#008FFB' : '#008FFB'
+            }
+          ]
+        }
+      }
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'center',
+      offsetY: -8,
+      labels: {
+        colors: isDarkMode.value ? '#A3AED0' : '#333'
+      }
+    },
+    tooltip: {
+      theme: isDarkMode.value ? 'dark' : 'light',
+      y: {
+        formatter: function(value) {
+          return value + ' GB'
+        }
+      }
+    }
+  },
+});
+
+// Helper functions
+const bytesToMbps = (bytes) => (bytes * 8) / (1024 * 1024);
+const bytesToMB = (bytes) => bytes / (1024 * 1024);
+const bytesToGB = (bytes) => bytes / (1024 * 1024 * 1024);
+
+// Computed properties for chart data
+const series = computed(() => ({
+  clients: [
+    {
+      name: "Download",
+      data: networkStore.clients
+        .sort((a, b) => b.rx_bytes - a.rx_bytes)
+        .slice(0, 10)
+        .map(client => bytesToMB(client.rx_bytes).toFixed(2))
+    },
+    {
+      name: "Upload",
+      data: networkStore.clients
+        .sort((a, b) => b.tx_bytes - a.tx_bytes)
+        .slice(0, 10)
+        .map(client => bytesToMB(client.tx_bytes).toFixed(2))
+    }
+  ],
+  ssid: networkStore.clients
+    .filter(client => !client.is_wired && client.essid)
+    .reduce((acc, client) => {
+      const ssid = client.essid;
+      const usage = bytesToGB(client.rx_bytes + client.tx_bytes);
+      
+      const existingSSID = acc.find(item => item.name === ssid);
+      if (existingSSID) {
+        existingSSID.value += usage;
+      } else {
+        acc.push({ name: ssid, value: usage });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => b.value - a.value)
+    .map(item => parseFloat(item.value.toFixed(2))),
+  dpi: [{
+    data: networkStore.devices
+      .map(device => ({
+        x: device.name || device.mac,
+        y: parseFloat(bytesToGB(device.rx_bytes + device.tx_bytes).toFixed(2))
+      }))
+      .sort((a, b) => b.y - a.y)
+  }],
+}));
+
+// Update chart categories based on data
+const updateChartCategories = () => {
+  // Update client chart categories
+  chartOptions.value.clients.xaxis.categories = networkStore.clients
+    .sort((a, b) => b.rx_bytes - a.rx_bytes)
+    .slice(0, 10)
+    .map(client => client.hostname || client.mac);
+
+  // Update SSID chart labels
+  chartOptions.value.ssid.labels = networkStore.clients
+    .filter(client => !client.is_wired && client.essid)
+    .map(client => client.essid)
+    .filter((value, index, self) => self.indexOf(value) === index);
+};
+
+// Watch for theme changes
+watch(() => isDarkMode.value, (newValue) => {
+  // Update chart themes
+  const theme = {
+    mode: newValue ? 'dark' : 'light',
+    palette: 'palette1',
+    monochrome: {
+      enabled: false,
+      color: '#008FFB',
+      shadeTo: newValue ? 'dark' : 'light',
+      shadeIntensity: 0.65
+    }
+  };
+
+  // Update all charts
+  ['clients', 'ssid', 'dpi'].forEach(chartId => {
+    chartOptions.value[chartId].chart.foreColor = newValue ? '#A3AED0' : '#333';
+    chartOptions.value[chartId].chart.theme = theme;
+    chartOptions.value[chartId].tooltip.theme = newValue ? 'dark' : 'light';
+
+    if (chartOptions.value[chartId].legend) {
+      chartOptions.value[chartId].legend.labels.colors = newValue ? '#A3AED0' : '#333';
+    }
+
+    if (chartOptions.value[chartId].xaxis?.labels) {
+      chartOptions.value[chartId].xaxis.labels.style.colors = newValue ? '#A3AED0' : '#333';
+    }
+
+    if (chartOptions.value[chartId].yaxis?.title) {
+      chartOptions.value[chartId].yaxis.title.style.color = newValue ? '#A3AED0' : '#333';
+    }
+
+    if (chartOptions.value[chartId].yaxis?.labels) {
+      chartOptions.value[chartId].yaxis.labels.style.colors = newValue ? '#A3AED0' : '#333';
+    }
+  });
+}, { immediate: true });
+
+// Watch for data changes
+watch(() => networkStore.devices, updateChartCategories, { deep: true });
+watch(() => networkStore.clients, updateChartCategories, { deep: true });
+
+onMounted(async () => {
+  await Promise.all([
+    networkStore.fetchDevices(),
+    networkStore.fetchClients()
+  ]);
+  updateChartCategories();
 });
 </script>
 

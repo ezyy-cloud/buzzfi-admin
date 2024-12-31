@@ -1,12 +1,27 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import DashboardStats from "@/ui/components/DataStats/DashboardStats.vue";
 import VoucherSales from "@/ui/components/Charts/VoucherSales.vue";
 import ClientAnalytics from "@/ui/components/Charts/ClientAnalytics.vue";
+import UplinkWordCloud from "@/ui/components/Charts/UplinkWordCloud.vue";
 import VendorSales from "@/ui/components/Charts/VendorSales.vue";
 import VendorRevenue from "@/ui/components/VendorRevenue.vue";
 import SiteMetrics from "@/ui/components/Tables/SiteMetrics.vue";
-import AccessPointLocations from "@/ui/components/Maps/AccessPointLocations.vue";
+import SiteLocations from "@/ui/components/Maps/SiteLocations.vue";
 import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
+import { useSalesStatsStore } from '@/stores/salesStats';
+
+const salesStore = useSalesStatsStore();
+
+onMounted(() => {
+  // Start real-time polling when component mounts
+  salesStore.startPolling();
+});
+
+onUnmounted(() => {
+  // Clean up polling when component unmounts
+  salesStore.stopPolling();
+});
 </script>
 
 <template>
@@ -31,8 +46,12 @@ import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
       <!-- ====== Client Analytics End -->
 
       <!-- ====== Access Point Locations Start -->
-      <AccessPointLocations />
+      <SiteLocations />
       <!-- ====== Access Point Locations End -->
+
+      <!-- ====== Uplink Word Cloud Start -->
+      <UplinkWordCloud />
+      <!-- ====== Uplink Word Cloud End -->
 
       <!-- ====== Site Metrics Start -->
       <div class="col-span-12 xl:col-span-8">

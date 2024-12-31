@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useNetworkStore } from "@/stores/networkStats";
-import type { UnifiClient } from "@/types/network";
 // @ts-ignore
 import VueApexCharts from "vue3-apexcharts";
 
@@ -10,11 +9,11 @@ const loading = ref(true);
 
 // Process clients by OUI
 const chartData = computed(() => {
-  const stats = new Map<string, number>();
+  const stats = new Map();
   let totalKnownClients = 0;
   
   // Only count clients with known OUIs
-  networkStore.clients.forEach((client: UnifiClient) => {
+  networkStore.clients.forEach(client => {
     if (client.oui && client.oui !== 'Unknown') {
       stats.set(client.oui, (stats.get(client.oui) || 0) + 1);
       totalKnownClients++;
@@ -73,8 +72,8 @@ const fetchData = async () => {
   loading.value = true;
   try {
     await networkStore.fetchClients();
-    console.log('Clients with OUI:', networkStore.clients.map((client: UnifiClient) => ({
-      _id: client._id,
+    console.log('Clients with OUI:', networkStore.clients.map(client => ({
+      id: client.id,
       oui: client.oui,
       name: client.name
     })));

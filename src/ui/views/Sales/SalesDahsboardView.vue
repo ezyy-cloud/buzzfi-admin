@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
 import DashboardStats from "@/ui/components/DataStats/DashboardStats.vue";
 import VoucherSales from "@/ui/components/Charts/VoucherSales.vue";
 import ClientAnalytics from "@/ui/components/Charts/ClientAnalytics.vue";
@@ -9,19 +8,6 @@ import VendorRevenue from "@/ui/components/VendorRevenue.vue";
 import SiteMetrics from "@/ui/components/Tables/SiteMetrics.vue";
 import SiteLocations from "@/ui/components/Maps/SiteLocations.vue";
 import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
-import { useSalesStatsStore } from '@/stores/salesStats';
-
-const salesStore = useSalesStatsStore();
-
-onMounted(() => {
-  // Start real-time polling when component mounts
-  salesStore.startPolling();
-});
-
-onUnmounted(() => {
-  // Clean up polling when component unmounts
-  salesStore.stopPolling();
-});
 </script>
 
 <template>
@@ -62,6 +48,7 @@ onUnmounted(() => {
       <!-- ====== Vendor Revenue Start -->
       <VendorRevenue />
       <!-- ====== Vendor Revenue End -->
+
     </div>
   </DefaultLayout>
 </template>

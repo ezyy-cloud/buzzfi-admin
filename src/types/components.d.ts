@@ -1,8 +1,0 @@
-declare module '@/ui/components/Tables/Agents.vue'
-declare module '@/ui/components/Tables/Sites.vue'
-declare module '@/ui/components/Tables/Sales.vue'
-declare module '@/ui/components/Tables/Vouchers.vue'
-declare module '@/ui/components/Tables/AccessPoints.vue'
-declare module '@/ui/components/Charts/Bandwidth.vue'
-declare module '@/ui/components/Tables/SupportTicket.vue'
-declare module '@/ui/components/Tables/TrafficShapes.vue'

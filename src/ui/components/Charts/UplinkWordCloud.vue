@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useNetworkStore } from "@/stores/networkStats";
-import type { UnifiClient } from "@/types/network";
 import vuewordcloud from "vuewordcloud";
 
 const networkStore = useNetworkStore();
 const loading = ref(true);
 
 // Process clients by last_uplink_name
-const words = computed<[string, number][]>(() => {
-  const stats = new Map<string, number>();
+const words = computed(() => {
+  const stats = new Map();
   
-  networkStore.clients.forEach((client: UnifiClient) => {
+  networkStore.clients.forEach(client => {
     if (client.last_uplink_name && client.last_uplink_name !== 'Unknown') {
       stats.set(client.last_uplink_name, (stats.get(client.last_uplink_name) || 0) + 1);
     }
@@ -19,18 +18,22 @@ const words = computed<[string, number][]>(() => {
 
   // Convert to array format required by word cloud
   return Array.from(stats.entries())
-    .map(([name, count]): [string, number] => [name, count])
-    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => [name, count.toString()])
+    .sort((a, b) => parseInt(b[1]) - parseInt(a[1]))
     .slice(0, 30); // Show top 30 uplinks
 });
 
 const cloudStyles = {
   fontFamily: 'Helvetica, Arial, sans-serif',
   fontWeight: 'bold',
-  color: '#4318FF',
-  rotation: {
-    from: -60,
-    to: 60
+  color: function(word, weight) {
+    return weight > 8 ? '#3C50E0' : 
+           weight > 6 ? '#6577F3' : 
+           weight > 4 ? '#8FD0EF' : 
+           weight > 2 ? '#0FADCF' : '#10B981';
+  },
+  rotation: function() {
+    return ~~(Math.random() * 2) * 90;
   }
 };
 

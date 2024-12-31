@@ -24,45 +24,96 @@ const mapContainer = ref(null);
 let map: L.Map | null = null;
 let markerGroup: L.LayerGroup | null = null;
 
-const initMap = () => {
-  if (!mapContainer.value) return;
-  
-  map = L.map(mapContainer.value).setView([-19.0154, 29.1549], 7); // Zimbabwe center coordinates
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: ' OpenStreetMap contributors'
+// Function to validate coordinates
+const validateCoordinates = (lat: number, lng: number): boolean => {
+  // Zimbabwe's approximate bounding box
+  const ZIMBABWE_BOUNDS = {
+    minLat: -22.5,
+    maxLat: -15.5,
+    minLng: 25.0,
+    maxLng: 33.0
+  };
+
+  return (
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= ZIMBABWE_BOUNDS.minLat &&
+    lat <= ZIMBABWE_BOUNDS.maxLat &&
+    lng >= ZIMBABWE_BOUNDS.minLng &&
+    lng <= ZIMBABWE_BOUNDS.maxLng
+  );
+};
+
+const initMap = async () => {
+  // Fetch sites data
+  await sitesStore.fetchSites();
+
+  // Create map instance with no zoom control (we'll add it later)
+  map = L.map(mapContainer.value, {
+    zoomControl: false
+  }).setView([-19.0154, 29.1549], 7);
+
+  // Add dark OpenStreetMap tiles
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
   }).addTo(map);
 
-  // Initialize marker group
-  markerGroup = L.layerGroup();
-  if (map) {
-    markerGroup.addTo(map);
-  }
+  // Add single zoom control in top-left
+  L.control.zoom({
+    position: 'topleft'
+  }).addTo(map);
 
-  // Add markers for each site
-  sitesStore.sites.forEach(site => {
-    if (site.coordinates) {
-      const [lat, lng] = site.coordinates.split(',').map(coord => parseFloat(coord.trim()));
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const marker = L.circleMarker([lat, lng], {
-          radius: 8,
-          fillColor: "#FF5353",
-          color: "#fff",
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.8
-        });
+  // Create a layer group for markers
+  markerGroup = L.layerGroup().addTo(map);
 
-        marker.bindPopup(`
-          <strong>${site.name}</strong>
-          ${site.address ? `<br>${site.address}` : ''}
-        `);
-
-        if (markerGroup) {
-          marker.addTo(markerGroup);
-        }
+  // Process and add valid site points
+  const validSites = sitesStore.sites
+    .filter(site => site.coordinates)
+    .map(site => {
+      const [lat, lng] = site.coordinates!.split(',').map(coord => parseFloat(coord.trim()));
+      
+      if (validateCoordinates(lat, lng)) {
+        return {
+          latitude: lat,
+          longitude: lng,
+          title: site.name,
+          address: site.address
+        };
       }
-    }
+      return null;
+    })
+    .filter((site): site is NonNullable<typeof site> => site !== null);
+
+  // Create markers for each site
+  const markers = validSites.map(site => {
+    const marker = L.circleMarker([site.latitude, site.longitude], {
+      radius: 8,
+      fillColor: "#FF5353",
+      color: "#fff",
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.8
+    });
+
+    marker.bindPopup(`
+      <strong>${site.title}</strong>
+      ${site.address ? `<br>${site.address}` : ''}
+    `);
+
+    return marker;
   });
+
+  // Add markers to the layer group
+  markers.forEach(marker => marker.addTo(markerGroup!));
+
+  // Fit map bounds to show all markers
+  if (markers.length > 0) {
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds(), {
+      padding: [50, 50]
+    });
+  }
 };
 
 onMounted(() => {

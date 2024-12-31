@@ -9,10 +9,12 @@
         <div class="container mx-auto p-4">
           <!-- Network Overview -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div v-for="stat in networkStats" :key="stat.title" class="dark:bg-boxdark rounded-lg shadow p-4">
+            <div v-for="stat in networkOverview" :key="stat.title" class="dark:bg-boxdark rounded-lg shadow p-4">
               <h2 class="text-lg font-semibold mb-2">{{ stat.title }}</h2>
-              <p class="text-2xl font-bold" :class="stat.class">{{ stat.value }}</p>
-              <i :class="stat.icon" class="text-2xl"></i>
+              <p class="text-2xl font-bold">{{ stat.value }}</p>
+              <p v-if="stat.trend" class="text-caption" :class="stat.trend >= 0 ? 'text-green-600' : 'text-red-600'">
+                {{ stat.trend >= 0 ? '+' : '' }}{{ stat.trend }}% from last hour
+              </p>
             </div>
           </div>
 
@@ -44,12 +46,12 @@
                       <td class="py-2 px-4">{{ client.name }}</td>
                       <td class="py-2 px-4">{{ client.ip }}</td>
                       <td class="py-2 px-4">
-                        <span :class="getHealthColor(client.satisfaction)">
-                          {{ client.satisfaction }}%
+                        <span :class="getHealthColor(parseInt(client.satisfaction))">
+                          {{ client.satisfaction }}
                         </span>
                       </td>
                       <td class="py-2 px-4">{{ client.uptime }}</td>
-                      <td class="py-2 px-4">{{ client.dataUsage }}/s</td>
+                      <td class="py-2 px-4">{{ client.dataUsage }}</td>
                       <td class="py-2 px-4">
                         <span :class="client.connectionType.includes('Wireless') ? 'text-blue-500' : 'text-gray-500'">
                           {{ client.connectionType }}
@@ -74,7 +76,7 @@
 
             <div class="relative overflow-hidden rounded-lg bg-boxdark">
               <TransitionGroup name="slide" tag="div">
-                <div v-for="(ap, index) in visibleDevices" :key="ap.name" v-show="index === currentSlide"
+                <div v-for="(ap, index) in apStatistics" :key="ap.name" v-show="index === currentSlide"
                   class="transition-transform duration-500">
                   <div class="bg-boxdark rounded-lg shadow-lg dark:shadow-gray-900 p-6">
                     <!-- Header Section -->
@@ -110,12 +112,12 @@
                               <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs text-gray-500 dark:text-gray-400">CPU</span>
                                 <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{
-                                  ap.system_stats?.cpu || 'N/A' }}%</span>
+                                  ap['system-stats']?.cpu || 'N/A' }}%</span>
                               </div>
                               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                 <div class="h-1.5 rounded-full transition-all duration-300"
-                                  :class="getCPUColor(ap.system_stats?.cpu ? Number(ap.system_stats.cpu) : 0)"
-                                  :style="{ width: (ap.system_stats?.cpu ? Number(ap.system_stats.cpu) : 0) + '%' }">
+                                  :class="getCPUColor(parseInt(ap['system-stats']?.cpu || '0'))"
+                                  :style="{ width: (ap['system-stats']?.cpu || '0') + '%' }">
                                 </div>
                               </div>
                             </div>
@@ -124,12 +126,12 @@
                               <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Memory</span>
                                 <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{
-                                  ap.system_stats?.mem || 'N/A' }}%</span>
+                                  ap['system-stats']?.mem || 'N/A' }}%</span>
                               </div>
                               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                 <div class="h-1.5 rounded-full transition-all duration-300"
-                                  :class="getMemoryColor(ap.system_stats?.mem ? Number(ap.system_stats.mem) : 0)"
-                                  :style="{ width: (ap.system_stats?.mem ? Number(ap.system_stats.mem) : 0) + '%' }">
+                                  :class="getMemoryColor(parseInt(ap['system-stats']?.mem || '0'))"
+                                  :style="{ width: (ap['system-stats']?.mem || '0') + '%' }">
                                 </div>
                               </div>
                             </div>
@@ -138,11 +140,11 @@
                               <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Load</span>
                                 <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{
-                                  ap.system_stats?.loadavg_1 || '0' }}</span>
+                                  ap.sys_stats?.loadavg_1 || '0' }}</span>
                               </div>
                               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                 <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                  :style="{ width: ((parseFloat(ap.system_stats?.loadavg_1 || '0')) * 100) + '%' }">
+                                  :style="{ width: ((parseFloat(ap.sys_stats?.loadavg_1 || '0')) * 100) + '%' }">
                                 </div>
                               </div>
                             </div>
@@ -160,8 +162,8 @@
                               {{ radio.radio === 'ng' ? '2.4 GHz' : '5 GHz'
                               }}
                             </h3>
-                            <div class="text-xs" :class="[getHealthColor(radio.satisfaction || 0).replace('bg-', 'text-').replace('/20', '')]">
-                              {{ radio.satisfaction || 0 }}%
+                            <div class="text-xs" :class="[getHealthColor(radio.satisfaction).replace('bg-', 'text-').replace('/20', '')]">
+                              {{ radio.satisfaction }}%
                             </div>
                           </div>
                           <div class="space-y-4">
@@ -194,7 +196,7 @@
                               <div class="text-sm text-gray-500 dark:text-gray-400">Uptime</div>
                             </div>
                             <p class="text-sm  text-gray-900 dark:text-white">
-                              {{ formatUptime(ap.uptime ? Number(ap.uptime) : 0) }}
+                              {{ formatUptime(ap.uptime) }}
                             </p>
                           </div>
                           <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg px-4">
@@ -225,9 +227,12 @@
                                 </div>
                               </div>
                               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div class="h-1.5 rounded-full transition-all duration-300" :class="getUtilizationColor(ap.channel_utilization)"
-                                  :style="{
-                                        width: ap.channel_utilization + '%'
+                                <div class="h-1.5 rounded-full transition-all duration-300" :class="getUtilizationColor(ap.radio_table_stats ?
+                                  Math.round(ap.radio_table_stats.reduce((sum, radio) => sum + (radio.cu_total || 0), 0) / ap.radio_table_stats.length)
+                                  : 0)" :style="{
+                                        width: (ap.radio_table_stats ?
+                                          Math.round(ap.radio_table_stats.reduce((sum, radio) => sum + (radio.cu_total || 0), 0) / ap.radio_table_stats.length)
+                                          : 0) + '%'
                                       }">
                                 </div>
                               </div>
@@ -280,7 +285,7 @@
             <div class="dark:bg-boxdark rounded-lg shadow p-4">
               <h2 class="text-xl font-semibold mb-4">Channel Distribution</h2>
               <apexchart type="bar" height="350" :options="channelDistributionOptions"
-                :series="[{ name: 'APs', data: channelDistributionSeries }]"></apexchart>
+                :series="channelDistributionSeries"></apexchart>
             </div>
           </div>
 
@@ -294,7 +299,7 @@
                   <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
                     <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Health Score</div>
                     <div class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                      {{ networkHealth.score.toString() }}%
+                      {{ networkHealth.score }}%
                     </div>
                   </div>
                   <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
@@ -311,13 +316,13 @@
                   <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
                     <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Connected Clients</div>
                     <div class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                      {{ networkHealth.activeClients }}
+                      {{ networkHealth.connectedClients }}
                     </div>
                   </div>
                   <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
                     <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Network Load</div>
                     <div class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                      {{ networkHealth.score.toString() }}%
+                      {{ networkHealth.load }}%
                     </div>
                   </div>
                 </div>
@@ -332,13 +337,6 @@
             </apexchart>
           </div>
 
-          <!-- Health Statistics -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div v-for="stat in networkStats" :key="stat.title" class="dark:bg-boxdark rounded-lg shadow p-4">
-              <h2 class="text-lg font-semibold mb-2">{{ stat.title }}</h2>
-              <p class="text-2xl font-bold" :class="stat.class">{{ stat.value }}</p>
-            </div>
-          </div>
 
         </div>
       </div>
@@ -349,312 +347,418 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useNetworkStore } from "@/stores/networkStats";
-import type { UnifiDevice, UnifiClient, RadioTableEntry, NetworkHealth, ChannelDistribution } from "@/types/unifi";
-import { storeToRefs } from "pinia";
+import type { UnifiClient, UnifiDevice } from "@/stores/networkStats";
 import DefaultLayout from "@/ui/layouts/DefaultLayout.vue";
 import BreadcrumbDefault from "@/ui/components/Breadcrumbs/BreadcrumbDefault.vue";
 
+const pageTitle = "Network Dashboard";
 const networkStore = useNetworkStore();
-const { devices, clients } = storeToRefs(networkStore);
 
-const currentSlide = ref(0);
-const timer = ref<NodeJS.Timeout | null>(null);
-const pageTitle = ref("Network Dashboard");
-
-const calculateNetworkHealth = (): number => {
-  const accessPoints = devices.value.filter((d) => d.type === 'uap');
-  
-  if (!accessPoints.length) return 0;
-
-  const totalHealth = accessPoints.reduce((sum, device) => {
-    // CPU health (weight: 0.3)
-    const cpuHealth = 100 - parseFloat(device.system_stats?.cpu || '0');
-    
-    // Memory health (weight: 0.3)
-    const memHealth = 100 - parseFloat(device.system_stats?.mem || '0');
-    
-    // Signal strength health (weight: 0.2)
-    const signalHealth = device.radio_table_stats?.reduce((total, radio) => 
-      total + (radio.signal || 0), 0) || 0;
-    
-    // Channel utilization health (weight: 0.2)
-    const channelHealth = 100 - (device.radio_table_stats?.reduce((total, radio) => 
-      total + (radio.cu_total || 0), 0) || 0);
-
-    return sum + (cpuHealth * 0.3 + memHealth * 0.3 + signalHealth * 0.2 + channelHealth * 0.2);
-  }, 0);
-
-  return Math.round(totalHealth / accessPoints.length);
-};
-
-const networkHealth = computed<NetworkHealth>(() => {
-  const activeDevices = devices.value.filter((d) => d.state === 1);
-  const now = Date.now() / 1000;
-  
-  return {
-    score: calculateNetworkHealth(),
-    devicesOnline: activeDevices.length,
-    totalDevices: devices.value.length,
-    activeClients: clients.value.filter((client) =>
-      client.last_seen ? now - client.last_seen < 300 : false
+// Network Overview Stats
+const networkOverview = computed(() => [
+  {
+    title: "Total Devices",
+    value: networkStore.devices.length,
+    trend: calculateDeviceTrend(),
+  },
+  {
+    title: "Active Clients",
+    value: networkStore.clients.filter(client =>
+      (Date.now() / 1000) - client.last_seen < 300
     ).length,
-    totalClients: clients.value.length,
-    totalAPs: devices.value.filter((d) => d.type === 'uap').length,
-    activeAPs: activeDevices.filter((d) => d.type === 'uap').length,
-  };
-});
+    trend: calculateClientTrend(),
+  },
+  {
+    title: "Network Health",
+    value: calculateNetworkHealth() + "%",
+    trend: calculateHealthTrend(),
+  },
+  {
+    title: "Total Throughput",
+    value: formatDataRate(calculateTotalThroughput()),
+    trend: calculateThroughputTrend(),
+  },
+]);
 
-const networkLoad = computed(() => {
-  return devices.value
-    .filter((d) => d.type === 'uap')
-    .reduce((sum, device) => {
-      return sum + (device.system_stats?.loadavg_1 ? parseFloat(device.system_stats.loadavg_1) : 0);
-    }, 0);
-});
-
-const totalChannelUtilization = computed(() => {
-  return devices.value
-    .filter((d) => d.type === 'uap')
-    .reduce((sum, device) => {
-      const radioStats = device.radio_table_stats || [];
-      return sum + radioStats.reduce((total, radio) => total + (radio.cu_total || 0), 0);
-    }, 0);
-});
-
-const networkStats = computed(() => {
-  return [
-    {
-      title: 'Network Load',
-      value: networkLoad.value.toFixed(2),
-      icon: 'fas fa-network-wired',
-      class: networkLoad.value > 2 ? 'text-red-500' : 'text-green-500'
-    },
-    {
-      title: 'Channel Utilization',
-      value: totalChannelUtilization.value.toFixed(2) + '%',
-      icon: 'fas fa-signal',
-      class: totalChannelUtilization.value > 80 ? 'text-red-500' : 'text-green-500'
-    }
-  ];
-});
-
-const clientStatistics = computed(() => {
-  return clients.value.map((client) => ({
+// Client Statistics
+const clientStatistics = computed(() =>
+  networkStore.clients.map((client: UnifiClient) => ({
     name: client.name || client.hostname || 'Unknown Device',
-    ip: client.ip,
-    satisfaction: client.satisfaction || 0,
-    uptime: formatUptime(client.uptime),
-    dataUsage: formatBytes((client.tx_bytes_r || 0) + (client.rx_bytes_r || 0)),
-    connectionType: client.is_wired ? 'Wired' : 'Wireless',
-    associatedAP: client.essid || 'N/A'
+    ip: client.ip || 'N/A',
+    satisfaction: client.satisfaction ? `${client.satisfaction}%` : 'N/A',
+    uptime: client.uptime ? formatUptime(client.uptime) : 'N/A',
+    dataUsage: formatDataRate(client.tx_bytes + client.rx_bytes),
+    connectionType: client.is_wired ? 'Wired' : `Wireless (${client.radio || 'Unknown'})`,
+    associatedAP: client.last_uplink_name || 'Unknown AP'
+  }))
+);
+
+// Access Point Statistics
+const apStatistics = computed(() =>
+  networkStore.devices
+    .filter((device: UnifiDevice) => device.type === 'uap')
+    .map(ap => ({
+      name: ap.name,
+      uptime: ap.uptime,
+      model: ap.model,
+      version: ap.version,
+      ip: ap.ip,
+      connectedClients: ap.radio_table_stats?.reduce((sum, radio) => sum + (radio.num_sta || 0), 0) || 0,
+      totalThroughput: formatDataRate(ap.tx_bytes + ap.rx_bytes),
+      channel_utilization: ap.channel_utilization || 0,
+      signalStrength: ap.uplink?.signal_strength || 'N/A',
+      txRate: ap.uplink?.tx_rate || 0,
+      rxRate: ap.uplink?.rx_rate || 0,
+      'system-stats': ap['system-stats'] || {},
+      sys_stats: ap.sys_stats || {},
+      network: {
+        drops: ap.uplink?.drops || 0,
+        errors: ap.uplink?.errors || 0,
+        latency: ap.uplink?.latency || 0
+      },
+      radio_table_stats: ap.radio_table_stats || []
+    }))
+);
+
+// SSID Usage Stats
+const ssidUsageData = computed(() => {
+  const ssidStats = new Map<string, number>();
+  networkStore.devices
+    .filter((device: UnifiDevice) => device.type === 'uap')
+    .forEach(ap => {
+      ap.vap_table?.forEach(vap => {
+        const current = ssidStats.get(vap.essid) || 0;
+        ssidStats.set(vap.essid, current + (vap.num_sta || 0));
+      });
+    });
+  return Array.from(ssidStats.entries()).map(([name, value]) => ({
+    name,
+    value
   }));
 });
 
-const clientSatisfactionOptions = {
+const ssidUsageSeries = computed(() => ssidUsageData.value.map(item => item.value));
+const ssidUsageOptions = computed(() => ({
   chart: {
-    type: 'pie',
-    height: 350,
+    type: 'pie'
   },
-  labels: ['Excellent', 'Good', 'Fair', 'Poor'],
-  colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'],
-};
+  labels: ssidUsageData.value.map(item => item.name),
+  responsive: [{
+    breakpoint: 480,
+    options: {
+      chart: {
+        width: 200
+      },
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }]
+}));
 
-const clientSatisfactionSeries = computed(() => {
-  const wirelessClients = clients.value.filter((client) => !client.is_wired);
-  return [
-    wirelessClients.filter(c => (c.satisfaction || 0) >= 90).length,
-    wirelessClients.filter(c => (c.satisfaction || 0) >= 70 && (c.satisfaction || 0) < 90).length,
-    wirelessClients.filter(c => (c.satisfaction || 0) >= 50 && (c.satisfaction || 0) < 70).length,
-    wirelessClients.filter(c => (c.satisfaction || 0) < 50).length,
-  ];
-});
+// Channel Distribution Stats
+const channelDistributionData = computed(() => {
+  const stats = {
+    '2.4GHz': 0,
+    '5GHz': 0
+  };
 
-const ssidUsageOptions = {
-  chart: {
-    type: 'donut'
-  },
-  labels: ['2.4 GHz', '5 GHz'],
-  colors: ['#10B981', '#6366F1']
-};
+  networkStore.clients
+    .filter(client => !client.is_wired)
+    .forEach((client: UnifiClient) => {
+      if (client.radio === 'ng') stats['2.4GHz']++;
+      else if (client.radio === 'na') stats['5GHz']++;
+    });
 
-const ssidUsageSeries = computed(() => {
-  const stats = devices.value
-    .filter((device) => device.type === 'uap')
-    .reduce((acc, device) => {
-      const radioStats = device.radio_table_stats || [];
-      const band24 = radioStats.find(r => r.radio === 'ng')?.num_sta || 0;
-      const band5 = radioStats.find(r => r.radio === 'na')?.num_sta || 0;
-      return [acc[0] + band24, acc[1] + band5];
-    }, [0, 0]);
   return stats;
 });
 
-const channelDistributionOptions = {
+const channelDistributionSeries = computed(() => [{
+  name: 'Clients',
+  data: Object.values(channelDistributionData.value)
+}]);
+
+const channelDistributionOptions = computed(() => ({
   chart: {
     type: 'bar'
   },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      columnWidth: '55%',
+      endingShape: 'rounded'
+    }
+  },
+  dataLabels: {
+    enabled: false
+  },
   xaxis: {
-    categories: [] as string[]
+    categories: Object.keys(channelDistributionData.value),
   }
-};
+}));
 
-const channelDistributionSeries = computed(() => {
-  const channelCounts: ChannelDistribution = devices.value
-    .filter((device) => device.type === 'uap')
-    .reduce((acc: ChannelDistribution, device) => {
-      const radioStats = device.radio_table_stats || [];
-      radioStats.forEach((radio) => {
-        if (radio.channel) {
-          const channelKey = radio.channel.toString();
-          acc[channelKey] = (acc[channelKey] || 0) + 1;
-        }
-      });
-      return acc;
-    }, {});
+// Network Health
+const networkHealth = computed(() => {
+  const devices = networkStore.devices;
+  const activeDevices = devices.filter(d => d.state === 1);
+  const totalSatisfaction = activeDevices.reduce((sum, device) =>
+    sum + (device.satisfaction || 0), 0
+  );
 
-  channelDistributionOptions.xaxis.categories = Object.keys(channelCounts);
+  return {
+    score: calculateNetworkHealth(),
+    devicesOnline: activeDevices.length,
+    totalDevices: devices.length,
+    connectedClients: networkStore.clients.filter(client =>
+      (Date.now() / 1000) - client.last_seen < 300
+    ).length,
+    load: calculateNetworkLoad(),
+    trend: calculateHealthTrend(),
+    clientTrend: calculateClientTrend()
+  };
+});
+
+// Client Satisfaction Distribution
+const clientSatisfactionSeries = computed(() => {
+  const clients = networkStore.clients.filter(client => !client.is_wired);
+  const distribution = {
+    excellent: clients.filter(c => (c.satisfaction || 0) >= 90).length,
+    good: clients.filter(c => (c.satisfaction || 0) >= 70 && (c.satisfaction || 0) < 90).length,
+    fair: clients.filter(c => (c.satisfaction || 0) >= 50 && (c.satisfaction || 0) < 70).length,
+    poor: clients.filter(c => (c.satisfaction || 0) > 0 && (c.satisfaction || 0) < 50).length
+  };
+
   return [{
-    name: 'APs',
-    data: Object.values(channelCounts)
+    name: 'Clients',
+    data: Object.values(distribution)
   }];
 });
 
+const clientSatisfactionOptions = computed(() => ({
+  chart: {
+    type: 'bar',
+    toolbar: { show: false }
+  },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      columnWidth: '55%',
+      borderRadius: 4,
+      distributed: true
+    }
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: function (val: number) {
+      return val || '';
+    }
+  },
+  legend: { show: false },
+  xaxis: {
+    categories: ['Excellent', 'Good', 'Fair', 'Poor'],
+    labels: {
+      style: { fontSize: '12px' }
+    }
+  },
+  yaxis: {
+    title: { text: 'Number of Clients' }
+  },
+  colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'],
+  tooltip: {
+    y: {
+      formatter: function (val: number) {
+        return val + ' clients';
+      }
+    }
+  }
+}));
+
 // Helper Functions
-const formatUptime = (seconds: number | undefined): string => {
-  if (seconds === undefined) return 'N/A';
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor(((seconds % 86400) % 3600) / 60);
-  
-  return `${days}d ${hours}h ${minutes}m`;
-};
+function calculateNetworkHealth(): number {
+  const devices = networkStore.devices;
+  if (!devices.length) return 0;
 
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
+  const totalSatisfaction = devices.reduce((sum, device) =>
+    sum + (device.satisfaction || 0), 0
+  );
 
-const getCPUColor = (cpu: number): string => {
-  if (cpu >= 80) return 'bg-red-500';
-  if (cpu >= 60) return 'bg-yellow-500';
-  return 'bg-green-500';
-};
+  return Math.round(totalSatisfaction / devices.length);
+}
 
-const getMemoryColor = (mem: number): string => {
-  if (mem >= 80) return 'bg-red-500';
-  if (mem >= 60) return 'bg-yellow-500';
-  return 'bg-green-500';
-};
+function calculateTotalThroughput(): number {
+  return networkStore.devices.reduce((sum, device) =>
+    sum + device.tx_bytes + device.rx_bytes, 0
+  );
+}
 
-const getHealthColor = (health: number): string => {
-  if (health >= 90) return 'bg-green-500/20 text-green-500';
-  if (health >= 70) return 'bg-blue-500/20 text-blue-500';
-  if (health >= 50) return 'bg-yellow-500/20 text-yellow-500';
-  return 'bg-red-500/20 text-red-500';
-};
+function formatDataRate(bytes: number): string {
+  const units = ['bps', 'Kbps', 'Mbps', 'Gbps'];
+  let value = bytes * 8; // Convert to bits
+  let unitIndex = 0;
 
-const calculateHealthTrend = (current: number, previous: number): string => {
-  if (current > previous) return 'up';
-  if (current < previous) return 'down';
-  return 'stable';
-};
+  while (value >= 1000 && unitIndex < units.length - 1) {
+    value /= 1000;
+    unitIndex++;
+  }
 
-const totalThroughput = computed(() => {
-  return devices.value
-    .filter((device) => device.type === 'uap')
-    .reduce((sum, device) => {
-      return sum + (device.stat?.tx_bytes || 0) + (device.stat?.rx_bytes || 0);
-    }, 0);
+  return `${value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function formatUptime(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return 'N/A';
+
+  const days = Math.floor(seconds / (24 * 60 * 60));
+  const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((seconds % (60 * 60)) / 60);
+
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}
+
+function calculateClientTrend(): number {
+  return 0;
+}
+
+function calculateDeviceTrend(): number {
+  return 0;
+}
+
+function calculateHealthTrend(): number {
+  return 0;
+}
+
+function calculateThroughputTrend(): number {
+  return 0;
+}
+
+function calculateNetworkLoad(): number {
+  const devices = networkStore.devices;
+  const accessPoints = devices.filter((d: UnifiDevice) => d.type === 'uap');
+  const connectedClients = networkStore.clients.filter(client =>
+    (Date.now() / 1000) - client.last_seen < 300
+  ).length;
+
+  if (!accessPoints.length) return 0;
+
+  // Calculate average clients per AP (as a percentage of typical capacity)
+  // Assuming a typical AP can handle 30-50 clients efficiently
+  const maxClientsPerAP = 40;
+  const avgClientsPerAP = connectedClients / accessPoints.length;
+  const load = Math.round((avgClientsPerAP / maxClientsPerAP) * 100);
+
+  // Cap at 100%
+  return Math.min(load, 100);
+}
+
+function getTotalClients(radioTableStats) {
+  return radioTableStats.reduce((sum, radio) => sum + (radio.num_sta || 0), 0);
+}
+
+function formatBytes(bytes) {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(1)} ${units[unitIndex]}`;
+}
+
+// Initial data fetch
+onMounted(async () => {
+  await Promise.all([
+    networkStore.fetchDevices(),
+    networkStore.fetchClients(),
+    networkStore.fetchHealth()
+  ]);
+
+  // Set up polling for updates
+  setInterval(async () => {
+    await Promise.all([
+      networkStore.fetchDevices(),
+      networkStore.fetchClients(),
+      networkStore.fetchHealth()
+    ]);
+  }, 60000); // Update every minute
 });
 
-const getTotalClients = (radioTableStats: RadioTableEntry[]): number => {
-  return radioTableStats.reduce((total, radio) => total + (radio.num_sta || 0), 0);
-};
+const currentSlide = ref(0);
 
-const apStatistics = computed(() => {
-  return devices.value
-    .filter((device) => device.type === 'uap')
-    .map((ap) => {
-      const channelUtil = ap.radio_table_stats?.reduce((sum, radio) => 
-        sum + (radio.cu_total || 0), 0) || 0;
-      
-      return {
-        name: ap.name || '',
-        uptime: ap.uptime ? formatUptime(Number(ap.uptime)) : 'N/A',
-        model: ap.model || '',
-        version: ap.version || '',
-        ip: ap.ip || '',
-        mac: ap.mac || '',
-        connectedClients: getTotalClients(ap.radio_table_stats || []),
-        totalThroughput: formatBytes((ap.stat?.tx_bytes || 0) + (ap.stat?.rx_bytes || 0)),
-        channel_utilization: channelUtil,
-        signalStrength: ap.radio_table_stats?.[0]?.signal || 0,
-        system_stats: {
-          cpu: ap.system_stats?.cpu || '0',
-          mem: ap.system_stats?.mem || '0',
-          loadavg_1: ap.system_stats?.loadavg_1 || '0'
-        },
-        network: {
-          tx_bytes: ap.stat?.tx_bytes || 0,
-          rx_bytes: ap.stat?.rx_bytes || 0
-        },
-        radio_table_stats: ap.radio_table_stats || []
-      };
-    });
+function prevSlide() {
+  if (currentSlide.value > 0) {
+    currentSlide.value--;
+  } else {
+    // Loop to the last slide
+    currentSlide.value = apStatistics.value.length - 1;
+  }
+}
+
+function nextSlide() {
+  if (currentSlide.value < apStatistics.value.length - 1) {
+    currentSlide.value++;
+  } else {
+    // Loop back to the first slide
+    currentSlide.value = 0;
+  }
+}
+
+let slideInterval: NodeJS.Timeout;
+
+onMounted(() => {
+  slideInterval = setInterval(() => {
+    nextSlide();
+  }, 5000);
+});
+
+onUnmounted(() => {
+  if (slideInterval) {
+    clearInterval(slideInterval);
+  }
 });
 
 const visibleDevices = computed(() => {
   return apStatistics.value.slice(currentSlide.value, currentSlide.value + 1);
 });
 
-const getUtilizationColor = (utilization: number): string => {
-  const value = utilization || 0;
-  if (value >= 80) return 'bg-red-500';
-  if (value >= 60) return 'bg-yellow-500';
+const getCPUColor = (cpu) => {
+  const value = parseInt(cpu);
+  if (value >= 90) return 'bg-red-500';
+  if (value >= 70) return 'bg-orange-500';
   return 'bg-green-500';
 };
 
-const getTempWidth = (temp: number): string => {
-  const value = temp || 0;
-  return `${Math.min(value, 100)}%`;
+const getMemoryColor = (memory) => {
+  const value = parseInt(memory);
+  if (value >= 90) return 'bg-red-500';
+  if (value >= 70) return 'bg-orange-500';
+  return 'bg-green-500';
 };
 
-// Initial data fetch
-onMounted(() => {
-  networkStore.fetchDevices();
-  networkStore.fetchClients();
-  
-  timer.value = setInterval(() => {
-    networkStore.fetchDevices();
-    networkStore.fetchClients();
-  }, 60000); // Update every minute
-});
-
-// Timer cleanup
-onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value);
-    timer.value = null;
-  }
-});
-
-const prevSlide = () => {
-  if (currentSlide.value > 0) {
-    currentSlide.value--;
-  } else {
-    currentSlide.value = apStatistics.value.length - 1;
-  }
+const getTempWidth = (temp) => {
+  const value = parseInt(temp);
+  return Math.min(100, (value / 80) * 100) + '%';
 };
 
-const nextSlide = () => {
-  if (currentSlide.value < apStatistics.value.length - 1) {
-    currentSlide.value++;
-  } else {
-    currentSlide.value = 0;
-  }
+const getUtilizationColor = (utilization) => {
+  const value = parseInt(utilization);
+  if (value >= 80) return 'bg-red-500 text-red-800 dark:text-red-400';
+  if (value >= 60) return 'bg-orange-500 text-orange-800 dark:text-orange-400';
+  return 'bg-green-500 text-green-800 dark:text-green-400';
+};
+
+const getHealthColor = (health) => {
+  const value = parseInt(health);
+  if (value >= 80) return 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400';
+  if (value >= 60) return 'bg-orange-100 text-orange-800 dark:bg-orange-800/20 dark:text-orange-400';
+  return 'bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400';
 };
 </script>
 

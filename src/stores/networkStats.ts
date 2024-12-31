@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import { API_URL, TOKEN } from '@/config';
 
-export interface RadioTableEntry {
+interface RadioTableEntry {
   name: string;
   radio: 'ng' | 'na';
   channel: string | number;
@@ -34,11 +34,9 @@ export interface RadioTableEntry {
   cu_total?: number;
   cu_self_rx?: number;
   cu_self_tx?: number;
-  signal?: number;
-  signal_strength?: number;
 }
 
-export interface VapTableEntry {
+interface VapTableEntry {
   name: string;
   bssid: string;
   essid: string;
@@ -68,7 +66,7 @@ export interface VapTableEntry {
   site_id?: string;
 }
 
-export interface UplinkStats {
+interface UplinkStats {
   rx_bytes: number;
   tx_bytes: number;
   rx_bytes_mov: number;
@@ -82,7 +80,7 @@ export interface UplinkStats {
   satisfaction: number;
 }
 
-export interface UnifiDevice {
+interface UnifiDevice {
   _id: string;
   ip: string;
   mac: string;
@@ -101,30 +99,87 @@ export interface UnifiDevice {
   inform_url: string;
   inform_ip: string;
   version: string;
-  uptime?: number;
-  tx_bytes?: number;
-  rx_bytes?: number;
-  tx_bytes_r?: number;
-  rx_bytes_r?: number;
+  required_version: string;
+  board_rev: number;
+  manufacturer_id: number;
+  model_incompatible: boolean;
+  ethernet_table: Array<{
+    name: string;
+    mac: string;
+    num_port: number;
+  }>;
+  radio_table: RadioTableEntry[];
+  vap_table: VapTableEntry[];
+  uplink?: {
+    type: string;
+    up: boolean;
+    name: string;
+    full_duplex: boolean;
+    speed: number;
+    mac: string;
+    ip: string;
+    netmask: string;
+    gateway: string;
+    latency: number;
+    uptime: number;
+    tx_bytes: number;
+    rx_bytes: number;
+    drops: number;
+    errors: number;
+  };
+  uplink_table?: Array<{
+    name: string;
+    type: string;
+    up: boolean;
+    uplink_mac: string;
+    uplink_device_name?: string;
+  }>;
   system_stats?: {
     cpu: string;
     mem: string;
     uptime: string;
-    loadavg_1: string;
   };
-  radio_table_stats?: RadioTableEntry[];
   stat?: {
-    tx_bytes: number;
-    rx_bytes: number;
+    ap?: {
+      [key: string]: number | string;
+    };
   };
-  uplink?: {
-    drops: number;
-    errors: number;
-    latency: number;
-  };
+  bytes: number;
+  bytes_r: number;
+  tx_bytes: number;
+  rx_bytes: number;
+  bytes_d: number;
+  tx_bytes_d: number;
+  rx_bytes_d: number;
+  last_seen: number;
+  next_interval: number;
+  satisfaction?: number;
+  upgradable: boolean;
+  uptime: number;
+  isolated: boolean;
+  hash_id: string;
+  gateway_mac?: string;
+  gateway_name?: string;
+  x_vwirekey?: string;
+  wifi_caps?: number;
+  guest_kicks?: number;
+  guest_token?: string;
+  radio_table_stats?: Array<{
+    name: string;
+    radio: string;
+    satisfaction: number;
+    channel: number;
+    tx_power: number;
+    tx_packets: number;
+    tx_retries: number;
+    num_sta: number;
+    cu_total: number;
+    cu_self_rx: number;
+    cu_self_tx: number;
+  }>;
 }
 
-export interface UnifiClient {
+interface UnifiClient {
   _id: string;
   mac: string;
   site_id: string;
@@ -151,8 +206,6 @@ export interface UnifiClient {
   uptime?: number;
   tx_bytes: number;
   rx_bytes: number;
-  tx_bytes_r?: number;
-  rx_bytes_r?: number;
   tx_packets: number;
   tx_retries: number;
   wifi_tx_attempts?: number;
@@ -176,14 +229,15 @@ export interface UnifiClient {
   noted?: boolean;
   assoc_time?: number;
   latest_assoc_time?: number;
+  tx_bytes_r?: number;
+  rx_bytes_r?: number;
   qos_policy_applied?: boolean;
   anomalies?: number;
   fingerprint_override?: boolean;
   fingerprint_source?: string;
-  last_uplink_name?: string;
 }
 
-export interface NetworkData {
+interface NetworkData {
   sites: any[];
   clients: UnifiClient[];
   devices: UnifiDevice[];
